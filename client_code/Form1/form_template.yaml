@@ -27,11 +27,23 @@ components:
   type: ColumnPanel
   layout_properties: {slot: default}
   components:
-  - name: text_box_1
+  - name: linear_panel_2
+    properties: {}
+    type: LinearPanel
+    layout_properties: {grid_position: 'GBCDKE,FEDCAY'}
+    components:
+    - name: result
+      properties: {align: center}
+      type: Label
+      layout_properties: {}
+  - name: input_text
     properties: {}
     type: TextBox
     layout_properties: {grid_position: 'GQWQIW,MNFEGP'}
-  - name: button_2
-    properties: {text: button_2, visible: true}
+    data_bindings:
+    - {property: placeholder, code: 'self.item['''']', writeback: false}
+  - name: convert
+    properties: {text: Convert, visible: true}
     type: Button
     layout_properties: {grid_position: 'WKTFKM,VJJWEM'}
+    event_bindings: {click: convert_click}

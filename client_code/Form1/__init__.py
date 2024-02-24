@@ -1,5 +1,6 @@
 from ._anvil_designer import Form1Template
 from anvil import *
+import anvil.server
 
 class Form1(Form1Template):
   def __init__(self, **properties):
@@ -15,3 +16,13 @@ class Form1(Form1Template):
   def text_box_2_pressed_enter(self, **event_args):
     """This method is called when the user presses Enter in this text box"""
     pass
+
+  def convert_click(self, **event_args):
+    """This method is called when the button is clicked"""
+    convert_result = anvil.server.call('convert', 
+                                self.input_text)
+
+    if input_text:
+      self.result.text = convert_result
+    
+    
