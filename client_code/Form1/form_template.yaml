@@ -3,17 +3,26 @@ container:
   type: HtmlTemplate
   properties: {html: '@theme:standard-page.html'}
 components:
-- type: ColumnPanel
-  properties: {col_widths: '{}'}
-  name: content_panel
-  layout_properties: {slot: default}
-  components: []
 - type: FlowPanel
   properties: {}
   name: navbar_links
   layout_properties: {slot: nav-right}
-  components: []
-- name: rich_text_1
-  properties: {content: PENAWARAN AND NDC KONFIRMASI APP, align: left}
-  type: RichText
-  layout_properties: {slot: title}
+  components:
+  - name: text_box_2
+    properties: {}
+    type: TextBox
+  - name: button_1
+    properties: {text: button_1}
+    type: Button
+  - name: rich_text_1
+    properties: {content: v.1.0}
+    type: RichText
+    layout_properties: {}
+- name: text_box_1
+  properties: {enabled: true}
+  type: TextBox
+  layout_properties: {slot: default}
+- name: label_1
+  properties: {text: NDC Summarizer}
+  type: Label
+  layout_properties: {slot: left-nav}
