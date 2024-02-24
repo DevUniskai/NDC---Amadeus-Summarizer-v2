@@ -20,8 +20,9 @@ class Form1(Form1Template):
   def convert_click(self, **event_args):
     """This method is called when the button is clicked"""
     convert_result = anvil.server.call('convert', self.input_text)
-
-    if input_text:
+    print(convert_result)
+    if convert_result:
+      self.result.visible = True
       self.result.text = convert_result
     
     

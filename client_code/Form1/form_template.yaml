@@ -11,9 +11,6 @@ components:
   - name: linear_panel_1
     properties: {}
     type: LinearPanel
-  - name: button_1
-    properties: {text: button_1}
-    type: Button
   - name: rich_text_1
     properties: {content: v.1.0}
     type: RichText
@@ -28,7 +25,7 @@ components:
   layout_properties: {slot: default}
   components:
   - name: linear_panel_2
-    properties: {}
+    properties: {visible: true}
     type: LinearPanel
     layout_properties: {grid_position: 'GBCDKE,FEDCAY'}
     components:
