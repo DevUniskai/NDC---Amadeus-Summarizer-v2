@@ -15,19 +15,11 @@ components:
     properties: {content: v.1.0}
     type: RichText
     layout_properties: {}
-- name: label_1
-  properties: {text: NDC Summarizer}
-  type: Label
-  layout_properties: {slot: left-nav}
 - name: column_panel_1
   properties: {}
   type: ColumnPanel
   layout_properties: {slot: default}
   components:
-  - name: rich_text_2
-    properties: {}
-    type: RichText
-    layout_properties: {grid_position: 'UJCKYU,XDAVBV'}
   - name: linear_panel_2
     properties: {visible: true}
     type: LinearPanel
@@ -37,14 +29,20 @@ components:
       properties: {align: center}
       type: Label
       layout_properties: {}
-  - name: input_text
-    properties: {}
-    type: TextBox
-    layout_properties: {grid_position: 'GQWQIW,MNFEGP'}
-    data_bindings:
-    - {property: placeholder, code: 'self.item['''']', writeback: false}
+  - name: label_2
+    properties: {align: center, text: Insert Data Below}
+    type: Label
+    layout_properties: {grid_position: 'SHTUSG,OALSGA'}
+  - name: text_area
+    properties: {height: 190}
+    type: TextArea
+    layout_properties: {grid_position: 'YAKTEP,UVOEIL'}
   - name: convert
     properties: {text: Convert, visible: true}
     type: Button
     layout_properties: {grid_position: 'WKTFKM,VJJWEM'}
     event_bindings: {click: convert_click}
+- name: label_1
+  properties: {text: NDC Summarizer, bold: true}
+  type: Label
+  layout_properties: {slot: title}
