@@ -1,6 +1,143 @@
 from ._anvil_designer import Form1Template
 from anvil import *
 import anvil.server
+import re
+from datetime import datetime
+import sys
+
+def diff_day(date1, date2):  
+  # Convert strings to date objects
+  date_object1 = datetime.strptime(date1, "%d %b %Y")
+  date_object2 = datetime.strptime(date2, "%d %b %Y")
+
+  # Calculate the difference in days
+  difference_in_days = (date_object2 - date_object1).days
+
+  # Print the difference
+  # print("Difference in days:", difference_in_days)
+  return difference_in_days
+
+def parse_penawaran(input_text):
+  print("\n Result Penawaran\n\n")
+  lines = input_text.strip().split('\n')
+  # print(lines)
+  place_index = [ [x, y] for x,y in enumerate(lines) if len(y) == 3]
+  # print(place_index)
+  date_time = []
+  output_text = ""
+  for place in place_index:
+    split_datetime = lines[place[0]+1].split(" ")
+    # print(split_datetime)
+    time = split_datetime[0]
+    date = " ".join([split_datetime[1].replace("(",""), split_datetime[2], split_datetime[3][:4]])
+    # date = " ".join([split_datetime[1].replace("(",""), split_datetime[2]])
+    date_time.append([time, date])
+  # print(date_time)
+
+  length = len(place_index)
+  print("*Singapore Airlines*")
+  output_text += "*Singapore Airlines*\n"
+  for i in range(0, length, 2):
+    output_text += str(date_time[i][1] + " | " + place_index[i][1] + "-" + place_index[i+1][1] + " | " + date_time[i][0] + "-" + date_time[i+1][0])
+    print(date_time[i][1], end="")
+    print(" | " + place_index[i][1] + "-" + place_index[i+1][1] + " ", end="")
+    print("| " + date_time[i][0] + "-" + date_time[i+1][0], end="")
+    days = diff_day(date_time[i][1], date_time[i+1][1])
+    if (days > 0):
+      output_text += str("(+ " +str(days)+")")
+      print("(+ " +str(days)+")", end="")
+    
+    output_text += "\n"
+    print("")
+  
+  return output_text
+
+def get_index(list_item, search_text):
+  for idx, item in enumerate(list_item):
+    if search_text in item:
+      return idx
+  return -1
+
+def is_konfirmasi(input_text):
+  lines = input_text.strip().split(' ')
+
+  if "Booking" in lines:
+    return True
+  return False
+
+def parse_konfirmasi(input_text):
+  print("\n Result Konfirmasi\n\n")
+  lines = input_text.strip().split('\n')
+  pass_idx = get_index(lines, "Passenger Details") + 2
+
+  output_text ="*Singapore Airlines*\n"
+  print("*Singapore Airlines*")
+  #Get Passenger Data
+  for i in lines[pass_idx:]:
+    if("Contact Details" in i):
+      break
+    split_data = i.split("\t")
+    no_urut = split_data[0]
+    pass_data = no_urut + ". " + split_data[1]
+    if(no_urut.isnumeric()):
+      output_text += str(pass_data) + "\n"
+      print(pass_data)
+
+  print("")
+  output_text += "\n"
+  #Get Itin
+  itin_idx = get_index(lines, "Itinerary Details") + 5
+  order_idx = get_index(lines, "Order Details")
+  pattern = r"\((.*?)\)"
+
+  #Check Text if they copy until Order Detail
+  check_text = lines[itin_idx:] if order_idx == -1 else lines[itin_idx:order_idx]
+  # print(check_text)
+  #Got Place
+  place = re.findall(pattern, str(check_text))
+  # print(place)
+  length = len(place)
+  start = 0
+  datetime = []
+  for i in check_text:
+    if len(place) == start:
+      break
+    # print(i)
+    if place[start] in i and place[start+1] in i:
+
+      depart = i.split("\t")[1]
+      arrival = i.split("\t")[3]
+
+      depart_date = depart[:-6]
+      depart_time = depart[-5:]
+
+      arrival_date = arrival[:-6]
+      arrival_time = arrival[-5:]
+
+      output_text += str(depart_date)
+      print(depart_date, end="")
+      output_text += str(" | " + place[start]+"-"+place[start+1]+" | ")
+      print(" | " + place[start]+"-"+place[start+1]+" | ", end="")
+      output_text += str(depart_time+"-"+arrival_time)
+      print(depart_time+"-"+arrival_time, end="")
+      # print(i.split("\t"))
+      days = diff_day(depart_date, arrival_date)
+      if (days > 0):
+        output_text += " (+ " +str(days)+")"
+        print(" (+ " +str(days)+")", end="")
+      start+=2
+      output_text += "\n"
+      print("")
+  return output_text
+
+def main(text):
+  if is_konfirmasi(text) == True:
+    kon = parse_konfirmasi(text)
+    return kon
+
+  else:
+    flights = parse_penawaran(text)
+    return flights
 
 class Form1(Form1Template):
   def __init__(self, **properties):
@@ -8,7 +145,7 @@ class Form1(Form1Template):
     self.init_components(**properties)
 
     # Any code you write here will run before the form opens.
-
+    
   def text_box_1_pressed_enter(self, **event_args):
     """This method is called when the user presses Enter in this text box"""
     pass
@@ -19,11 +156,14 @@ class Form1(Form1Template):
 
   def convert_click(self, **event_args):
     """This method is called when the button is clicked"""
-    convert_result = anvil.server.call('convert',  self.text_area.text)
-    print(convert_result)
-    if convert_result:
-      self.result.visible = True
-      self.result.text = convert_result
+    # convert_result = anvil.server.call('convert',  self.text_area.text)
+    # print(convert_result)
+    if self.text_area.text:
+      summary = main(self.text_area.text)
+
+      if summary:
+        self.result.visible = True
+        self.result.text = summary
     pass
 
   def outlined_button_1_click(self, **event_args):
