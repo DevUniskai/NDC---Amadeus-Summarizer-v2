@@ -24,5 +24,6 @@ class Form1(Form1Template):
     if convert_result:
       self.result.visible = True
       self.result.text = convert_result
+    pass
     
     
