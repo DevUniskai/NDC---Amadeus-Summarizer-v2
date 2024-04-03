@@ -130,7 +130,7 @@ def parse_konfirmasi(input_text):
       print("")
   return output_text
 
-def main(text):
+def main_sq(text):
   if is_konfirmasi(text) == True:
     kon = parse_konfirmasi(text)
     return kon
@@ -157,10 +157,14 @@ class Form1(Form1Template):
   def convert_click(self, **event_args):
     """This method is called when the button is clicked"""
     # convert_result = anvil.server.call('convert',  self.text_area.text)
+    airline = self.airline.selected_value
+    print(airline)
     # print(convert_result)
     if self.text_area.text:
-      summary = main(self.text_area.text)
-
+      summary = None
+      if airline == "SQ":
+        summary = main_sq(self.text_area.text)
+        
       if summary:
         self.result.visible = True
         self.result.text = summary
