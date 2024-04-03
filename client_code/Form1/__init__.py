@@ -130,6 +130,101 @@ def parse_konfirmasi(input_text):
       print("")
   return output_text
 
+def is_penawaran(text):
+  split_text = text.split("\n")
+  if("Booking Details" in split_text):
+    return True
+  return False
+
+def handle_loc(text):
+  split = text.split(" ")
+  data=[]
+  temp=""
+  for key, item in enumerate(split):
+
+    isLastItem = key == len(split)-1
+
+    if(item == "-" or isLastItem):
+      if isLastItem:
+        temp += " " + item
+
+      data.append(temp)
+      temp = ""
+      continue
+
+    if(split[key-1] == "-"):
+      continue
+
+    if(len(temp)!=0):
+      temp+= " "
+
+    temp += item
+
+  return str(data[0] + "-" + data[1])
+
+def handle_time(text):
+  split = text.split(" ")
+  idx = split.index("-")
+  start = split[idx-1][-5:]
+  end = split[idx+1][:5]
+
+  return str(start + "-" + end)
+
+def parse_penawaran_air_asia(text):
+  split_text = text.split("\n")
+  print(split_text)
+
+  output = "*By Air Asia*\n\n"
+  depart_idx = split_text.index("Depart date")
+  depart_date = split_text[depart_idx+1]
+  depart_loc = split_text[depart_idx+2]
+  depart_time = handle_time(split_text[depart_idx+3])
+  depart_price = split_text[depart_idx+5]
+
+  output += str(depart_date + " | " + depart_loc + " | " + depart_time + "\n")
+
+  return_idx = split_text.index("Return date") if "Return date" in split_text else None
+
+  if(return_idx):
+    return_date = split_text[return_idx+1]
+    return_loc = split_text[return_idx+2]
+    return_time = handle_time(split_text[return_idx+3])
+    return_price = split_text[return_idx+5]
+
+    output += str(return_date + " | " + return_loc + " | " + return_time + "\n")
+
+  return output
+
+def parse_konfirmasi_air_asia(text):
+  split = text.split("\n")
+  output = ""
+  schedule_output = "*By Air Asia*\n"
+  idx = split.index("Flight summary")
+  town = split[idx+1] + "-" + split[idx+3]
+  idx = split.index("Departure:")
+  date = split[idx+2]
+  idx = split.index("Booking status")
+  time = split[idx+3]+"-"+split[idx+7]
+  schedule_output += date + "|" + town + "|" + time + "\n"
+  idx = split.index("Guest Name")
+  length = len(split)
+  
+  
+  for i in range(1, length-idx):
+    if(len(split[idx+i]) == 0):
+      continue
+    name = split[idx+i].replace('(Adult)', '')
+    output += name + "\n"
+  
+  output += "\n" + schedule_output
+  return output
+
+def main_airasia(text):  
+  if(is_penawaran(text)):
+    return parse_penawaran_air_asia(text)
+  else:
+    return parse_konfirmasi_air_asia(text)
+
 def main_sq(text):
   if is_konfirmasi(text) == True:
     kon = parse_konfirmasi(text)
@@ -164,6 +259,9 @@ class Form1(Form1Template):
       summary = None
       if airline == "SQ":
         summary = main_sq(self.text_area.text)
+
+      if airline == "Air Asia":
+        summary = main_airasia(self.text_area.text)
         
       if summary:
         self.result.visible = True
