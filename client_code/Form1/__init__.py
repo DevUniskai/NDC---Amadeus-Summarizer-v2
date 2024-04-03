@@ -132,7 +132,8 @@ def parse_konfirmasi(input_text):
 
 def is_penawaran(text):
   split_text = text.split("\n")
-  if("Booking Details" in split_text):
+  print(split_text)
+  if("Booking Details" in split_text[0]):
     return True
   return False
 
@@ -220,6 +221,7 @@ def parse_konfirmasi_air_asia(text):
   return output
 
 def main_airasia(text):  
+  
   if(is_penawaran(text)):
     return parse_penawaran_air_asia(text)
   else:
