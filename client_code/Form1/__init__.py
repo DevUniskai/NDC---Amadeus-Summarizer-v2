@@ -255,8 +255,7 @@ class Form1(Form1Template):
     """This method is called when the button is clicked"""
     # convert_result = anvil.server.call('convert',  self.text_area.text)
     airline = self.airline.selected_value
-    print(airline)
-    # print(convert_result)
+    
     if self.text_area.text:
       summary = None
       if airline == "SQ":
@@ -266,13 +265,22 @@ class Form1(Form1Template):
         summary = main_airasia(self.text_area.text)
         
       if summary:
+        self.btn_copy.visible = True
         self.result.visible = True
         self.result.text = summary
+        self.result.underline = False
     pass
 
   def outlined_button_1_click(self, **event_args):
     """This method is called when the button is clicked"""
     self.text_area.text = ""
     pass
+
+  def btn_copy_click(self, **event_args):
+    """This method is called when the button is clicked"""
+    get_open_form().call_js("cpy", self.result.text)
+    n = Notification("Copied to Clipboard", title="Status", style="success")
+    n.show()
+    
     
     
