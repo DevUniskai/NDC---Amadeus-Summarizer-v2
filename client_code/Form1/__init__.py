@@ -35,8 +35,8 @@ def parse_penawaran(input_text):
   # print(date_time)
 
   length = len(place_index)
-  print("*Singapore Airlines*")
-  output_text += "*Singapore Airlines*\n"
+  # print("*Singapore Airlines*")
+  output_text += "*By Singapore Airlines*\n"
   for i in range(0, length, 2):
     output_text += str(date_time[i][1] + " | " + place_index[i][1] + "-" + place_index[i+1][1] + " | " + date_time[i][0] + "-" + date_time[i+1][0])
     print(date_time[i][1], end="")
@@ -70,8 +70,8 @@ def parse_konfirmasi(input_text):
   lines = input_text.strip().split('\n')
   pass_idx = get_index(lines, "Passenger Details") + 2
 
-  output_text ="*Singapore Airlines*\n"
-  print("*Singapore Airlines*")
+  output_text =""
+  # print("*Singapore Airlines*")
   #Get Passenger Data
   for i in lines[pass_idx:]:
     if("Contact Details" in i):
@@ -99,6 +99,7 @@ def parse_konfirmasi(input_text):
   length = len(place)
   start = 0
   datetime = []
+  output_text +="*By Singapore Airlines*\n"
   for i in check_text:
     if len(place) == start:
       break
