@@ -203,11 +203,11 @@ def parse_konfirmasi_air_asia(text):
   schedule_output = "*By Air Asia*\n"
   idx = split.index("Flight summary")
   town = split[idx+1] + "-" + split[idx+3]
-  idx = split.index("Departure:")
+  idx = [index for index, item in enumerate(split) if "Departure:" in item][0]
   date = split[idx+2]
   idx = split.index("Booking status")
   time = split[idx+3]+"-"+split[idx+7]
-  schedule_output += date + "|" + town + "|" + time + "\n"
+  schedule_output += date + " | " + town + " | " + time + "\n"
   idx = split.index("Guest Name")
   length = len(split)
   
