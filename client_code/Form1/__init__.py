@@ -221,6 +221,90 @@ def parse_konfirmasi_air_asia(text):
   output += "\n" + schedule_output
   return output
 
+####AMADEUS#####
+def is_confirmation_amd(text):
+  split = text.split("\n")
+  split = [i for i in split if "RTSVC" not in i]
+  split = [i for i in split if len(i) != 0]
+  if len(split[0]) == 6:
+    return True
+  else:
+    return False
+
+def clean_schedule_amd(text):
+  datetime = text[5]
+  city = text[6][2:]
+  city = city[:3] + "-" + city[3:]
+  dep_time = text[9][:2]+"."+text[9][2:]
+  arr_time = text[10][:2]+"."+text[10][2:]
+  output = datetime + " | " + city + " | " + dep_time + "-" + arr_time + "\n"
+  return output
+
+def remove_numeric_amd(text):
+  result = ''.join(i for i in text if not i.isdigit())
+  return result
+
+def handle_name_amd(text):
+  split = text.split("(")[0].strip()
+  split = split.split("/")
+  last_name = split[0]
+  front_name = split[1].split(" ")
+  name = front_name[-1] + " " + ' '.join(front_name[0:len(front_name)-1]) + " " + last_name
+  name = name.replace('FNU', '')
+  name = re.sub(' +', ' ', name)
+  return name
+
+def handle_schedule_amd(text):
+  split = text.split("\n")
+  split = [i for i in split if "RTSVC" not in i]
+  split = [i for i in split if len(i) != 0]
+  flag = 1
+
+  output = "*By Singapore Airlines*\n"
+
+  for i in split:
+    index = i.strip().split(" ")
+    if flag == int(index[0]):
+      output += clean_schedule_amd(index)
+      flag+=1
+  return output
+
+def handle_confirmation_amd(text):
+  split = text.split("\n")
+  split = [i for i in split if "RTSVC" not in i]
+  split = [i for i in split if len(i) != 0]
+
+  output = ""
+  pnr = ""
+  count=1
+  flag=0
+  for idx, item in enumerate(split):
+    if idx == 0:
+      pnr = item
+    elif "." in item:
+      names = item.strip().split(".")
+      for name in names:
+        new_name = remove_numeric_amd(name)
+        if len(new_name) != 0:
+          output += str(count) + ". " + handle_name_amd(new_name) + "\n"
+          count+=1
+    else:
+      if flag == 0:
+        output += "\n*By ___ Airlines*\n"
+        flag = 1
+      index = item.strip().split(" ")
+      output += clean_schedule_amd(index)          
+  
+  return output
+
+### END of AMADEUS FUNCTION LOGIC ###
+
+def main_amd(text):
+  if(is_confirmation_amd(text)):
+    return handle_confirmation_amd(text)
+  else:
+    return handle_schedule_amd(text)
+
 def main_airasia(text):  
   
   if(is_penawaran(text)):
@@ -236,6 +320,8 @@ def main_sq(text):
   else:
     flights = parse_penawaran(text)
     return flights
+
+
 
 class Form1(Form1Template):
   def __init__(self, **properties):
@@ -264,6 +350,9 @@ class Form1(Form1Template):
 
       if airline == "Air Asia":
         summary = main_airasia(self.text_area.text)
+
+      if airline == "AMADEUS":
+        summary = main_amd(self.text_area.text)
         
       if summary:
         self.btn_copy.visible = True
