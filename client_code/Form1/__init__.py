@@ -176,24 +176,28 @@ def parse_penawaran_air_asia(text):
   split_text = text.split("\n")
   print(split_text)
 
-  output = "*By Air Asia*\n\n"
+  output = "By Air Asia \n\n"
   depart_idx = split_text.index("Depart date")
   depart_date = split_text[depart_idx+1]
-  depart_loc = split_text[depart_idx+2]
-  depart_time = handle_time(split_text[depart_idx+3])
-  depart_price = split_text[depart_idx+5]
+  depart_idx_end = split_text.index("Depart total")
+  depart_list = split_text[depart_idx+2:depart_idx_end].copy()
 
-  output += str(depart_date + " | " + depart_loc + " | " + depart_time + "\n")
+  for i in range(0, len(depart_list), 2):
+    depart_loc = depart_list[i]
+    depart_time = handle_time(depart_list[i+1])
+    output += str(depart_date + " | " + depart_loc + " | " + depart_time + "\n")
 
   return_idx = split_text.index("Return date") if "Return date" in split_text else None
 
   if(return_idx):
+    return_total = split_text.index("Return total")
+    return_list = split_text[return_idx+2:return_total].copy()
     return_date = split_text[return_idx+1]
-    return_loc = split_text[return_idx+2]
-    return_time = handle_time(split_text[return_idx+3])
-    return_price = split_text[return_idx+5]
-
-    output += str(return_date + " | " + return_loc + " | " + return_time + "\n")
+    
+    for i in range(0, len(return_list), 2):
+      return_loc = return_list[i]
+      return_time = handle_time(return_list[i+1])
+      output += str(return_date + " | " + return_loc + " | " + return_time + "\n")
 
   return output
 
