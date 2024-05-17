@@ -375,6 +375,18 @@ class Form1(Form1Template):
     get_open_form().call_js("cpy", self.result.text)
     n = Notification("Copied to Clipboard", title="Status", style="success")
     n.show()
+
+  def airline_change(self, **event_args):
+    """This method is called when an item is selected"""
+    airline = self.airline.selected_value
+    self.image_2.visible = False
     
+    if airline == "SQ":
+        self.image_2.visible = True
+
+      if airline == "Air Asia":
+        
+
+      if airline == "AMADEUS":
     
     
