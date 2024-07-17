@@ -36,8 +36,7 @@ components:
         layout_properties: {grid_position: 'EELCKI,IQRBRR'}
         components:
         - name: label_2_copy
-          properties: {align: center, text: 'Results:', bold: true, italic: false,
-            underline: false}
+          properties: {align: center, text: 'Results:', bold: true, italic: false, underline: false}
           type: Label
           layout_properties: {row: AVIRUX, width_xs: 2, col_xs: 0}
       - name: airline
@@ -55,8 +54,7 @@ components:
       layout_properties: {grid_position: 'YEYNGB,JNGMWY'}
       components:
       - name: result
-        properties: {align: center, visible: true, text: Result will be shown here,
-          underline: true}
+        properties: {align: center, visible: true, text: Result will be shown here, underline: true}
         type: Label
         layout_properties: {}
     - name: grid_panel_3
@@ -65,8 +63,7 @@ components:
       layout_properties: {grid_position: 'LTJZFV,LUYPPB'}
       components:
       - name: btn_copy
-        properties: {text: Copy to clipboard, visible: false, underline: true, bold: true,
-          align: right}
+        properties: {text: Copy to clipboard, visible: false, underline: true, bold: true, align: right}
         type: Button
         layout_properties: {row: VXILHU, width_xs: 3, col_xs: 9}
         event_bindings: {click: btn_copy_click}
@@ -75,8 +72,7 @@ components:
       type: Spacer
       layout_properties: {grid_position: 'FZKCIK,GWWIKW'}
     - name: label_2
-      properties: {align: center, text: Insert Data Below, bold: false, italic: true,
-        underline: true}
+      properties: {align: center, text: Insert Data Below, bold: false, italic: true, underline: true}
       type: Label
       layout_properties: {grid_position: 'RLIVOT,EGZRRO'}
     - name: grid_panel_1
