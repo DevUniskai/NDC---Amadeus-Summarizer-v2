@@ -130,8 +130,8 @@ def parse_konfirmasi(input_text):
       print(depart_time+"-"+arrival_time, end="")
 
       #flight code and class
-      output_text += " | " + str(flight_code) + " | " + str(flight_class)
-      print(" | " + str(flight_code) + " | " + str(flight_class), end="")
+      output_text += " | " + str(flight_code) + " " + str(flight_class)
+      print(" | " + str(flight_code) + " " + str(flight_class), end="")
       
       # print(i.split("\t"))
       days = diff_day(depart_date, arrival_date)
