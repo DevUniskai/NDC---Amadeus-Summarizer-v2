@@ -100,7 +100,7 @@ def parse_konfirmasi(input_text):
   start = 0
   datetime = []
   output_text +="*By Singapore Airlines*\n"
-  for i in check_text:
+  for key, i in enumerate(check_text):
     if len(place) == start:
       break
     # print(i)
@@ -115,12 +115,24 @@ def parse_konfirmasi(input_text):
       arrival_date = arrival[:-6]
       arrival_time = arrival[-5:]
 
+      flight_class = check_text[key+4][0]
+      flight_code = ""
+      if(key == 0):
+        flight_code = lines[itin_idx-2:][0]
+      else:      
+        flight_code = lines[itin_idx+key-2:][0]
+
       output_text += str(depart_date)
       print(depart_date, end="")
       output_text += str(" | " + place[start]+"-"+place[start+1]+" | ")
       print(" | " + place[start]+"-"+place[start+1]+" | ", end="")
       output_text += str(depart_time+"-"+arrival_time)
       print(depart_time+"-"+arrival_time, end="")
+
+      #flight code and class
+      output_text += " | " + str(flight_code) + " | " + str(flight_class)
+      print(" | " + str(flight_code) + " | " + str(flight_class), end="")
+      
       # print(i.split("\t"))
       days = diff_day(depart_date, arrival_date)
       if (days > 0):
