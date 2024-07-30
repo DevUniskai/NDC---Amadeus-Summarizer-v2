@@ -97,6 +97,7 @@ def parse_konfirmasi(input_text):
   place = re.findall(pattern, str(check_text))
   # print(place)
   length = len(place)
+  length_check = len(check_text)
   start = 0
   datetime = []
   output_text +="*By Singapore Airlines*\n"
@@ -115,7 +116,14 @@ def parse_konfirmasi(input_text):
       arrival_date = arrival[:-6]
       arrival_time = arrival[-5:]
 
-      flight_class = check_text[key+4][0]
+      flight_class = ""
+
+      if key+4 <= length_check:
+        if key+4 == length_check or len(check_text[key+4]) == 0:
+          flight_class = check_text[key+3].split("\t")[-1][0]
+        else:
+          flight_class = check_text[key+4].split("\t")[0][0]
+          
       flight_code = ""
       if(key == 0):
         flight_code = lines[itin_idx-2:][0]
