@@ -41,7 +41,7 @@ def parse_penawaran(input_text):
   output_text += "*By Singapore Airlines*\n"
   for i in range(0, length, 2):
     flight_code_str = " ".join(flight_code[int(i/2)][1])
-    flight_class_str = str(flight_class[int(1/2)][1])
+    flight_class_str = str(flight_class[int(i/2)][1])
     output_text += str(date_time[i][1] + " | " + place_index[i][1] + "-" + place_index[i+1][1] + " | " + date_time[i][0] + "-" + date_time[i+1][0])
     output_text += " | " + flight_code_str + " " + flight_class_str
     print(date_time[i][1], end="")
