@@ -90,6 +90,7 @@ def parse_konfirmasi(input_text):
 
   print("")
   output_text += "\n"
+  
   #Get Itin
   itin_idx = get_index(lines, "Itinerary Details") + 5
   order_idx = get_index(lines, "Order Details")
