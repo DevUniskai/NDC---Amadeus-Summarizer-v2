@@ -1,100 +1,100 @@
-is_package: true
-container:
-  type: HtmlTemplate
-  properties: {html: '@theme:standard-page.html'}
 components:
-- type: FlowPanel
-  properties: {}
-  name: navbar_links
-  layout_properties: {slot: nav-right}
-  components:
+- components:
   - name: linear_panel_1
     properties: {}
     type: LinearPanel
-  - name: rich_text_1
+  - layout_properties: {}
+    name: rich_text_1
     properties: {content: v.1.0}
     type: RichText
-    layout_properties: {}
-- name: column_panel_1
-  properties: {col_widths: '{"OPUZVN":40}'}
-  type: ColumnPanel
-  layout_properties: {slot: default}
-  components:
-  - name: column_panel_3
-    properties: {}
-    type: ColumnPanel
-    layout_properties: {grid_position: 'DSVPUF,OPUZVN'}
-    components:
-    - name: column_panel_2
-      properties: {}
-      type: ColumnPanel
-      layout_properties: {grid_position: 'YDCSOW,QZYLWT'}
-      components:
-      - name: grid_panel_2
+  layout_properties: {slot: nav-right}
+  name: navbar_links
+  properties: {}
+  type: FlowPanel
+- components:
+  - components:
+    - components:
+      - components:
+        - layout_properties: {col_xs: 0, row: AVIRUX, width_xs: 2}
+          name: label_2_copy
+          properties: {align: center, bold: true, italic: false, text: 'Results:', underline: false}
+          type: Label
+        layout_properties: {grid_position: 'EELCKI,IQRBRR'}
+        name: grid_panel_2
         properties: {}
         type: GridPanel
-        layout_properties: {grid_position: 'EELCKI,IQRBRR'}
-        components:
-        - name: label_2_copy
-          properties: {align: center, text: 'Results:', bold: true, italic: false, underline: false}
-          type: Label
-          layout_properties: {row: AVIRUX, width_xs: 2, col_xs: 0}
-      - name: airline
-        properties:
-          items: [SQ, Air Asia, AMADEUS]
-          include_placeholder: false
-        type: DropDown
-        layout_properties: {grid_position: 'EELCKI,JVSGLW'}
-        data_bindings:
-        - {property: selected_value, code: '', writeback: false}
+      - data_bindings:
+        - {code: '', property: selected_value, writeback: false}
         event_bindings: {change: airline_change}
-    - name: linear_panel_2
+        layout_properties: {grid_position: 'EELCKI,JVSGLW'}
+        name: airline
+        properties:
+          include_placeholder: false
+          items: [SQ, Air Asia, AMADEUS]
+        type: DropDown
+      layout_properties: {grid_position: 'YDCSOW,QZYLWT'}
+      name: column_panel_2
+      properties: {}
+      type: ColumnPanel
+    - components:
+      - layout_properties: {}
+        name: result
+        properties: {align: center, text: Result will be shown here, underline: true, visible: true}
+        type: Label
+      layout_properties: {grid_position: 'YEYNGB,JNGMWY'}
+      name: linear_panel_2
       properties: {visible: true}
       type: LinearPanel
-      layout_properties: {grid_position: 'YEYNGB,JNGMWY'}
-      components:
-      - name: result
-        properties: {align: center, visible: true, text: Result will be shown here, underline: true}
-        type: Label
-        layout_properties: {}
-    - name: grid_panel_3
+    - components:
+      - event_bindings: {click: btn_copy_click}
+        layout_properties: {col_xs: 9, row: VXILHU, width_xs: 3}
+        name: btn_copy
+        properties: {align: right, bold: true, text: Copy to clipboard, underline: true, visible: false}
+        type: Button
+      layout_properties: {grid_position: 'LTJZFV,LUYPPB'}
+      name: grid_panel_3
       properties: {}
       type: GridPanel
-      layout_properties: {grid_position: 'LTJZFV,LUYPPB'}
-      components:
-      - name: btn_copy
-        properties: {text: Copy to clipboard, visible: false, underline: true, bold: true, align: right}
-        type: Button
-        layout_properties: {row: VXILHU, width_xs: 3, col_xs: 9}
-        event_bindings: {click: btn_copy_click}
-    - name: spacer_1
+    - layout_properties: {grid_position: 'FZKCIK,GWWIKW'}
+      name: spacer_1
       properties: {height: 32}
       type: Spacer
-      layout_properties: {grid_position: 'FZKCIK,GWWIKW'}
-    - name: label_2
-      properties: {align: center, text: Insert Data Below, bold: false, italic: true, underline: true}
+    - layout_properties: {grid_position: 'RLIVOT,EGZRRO'}
+      name: label_2
+      properties: {align: center, bold: false, italic: true, text: Insert Data Below, underline: true}
       type: Label
-      layout_properties: {grid_position: 'RLIVOT,EGZRRO'}
-    - name: grid_panel_1
+    - components:
+      - event_bindings: {click: outlined_button_1_click}
+        layout_properties: {col_xs: 8, row: RJQRSQ, width_xs: 4}
+        name: outlined_button_1
+        properties: {role: outlined-button, text: Clear Text Area}
+        type: Button
+      layout_properties: {grid_position: 'HGQECH,DQZRZJ'}
+      name: grid_panel_1
       properties: {}
       type: GridPanel
-      layout_properties: {grid_position: 'HGQECH,DQZRZJ'}
-      components:
-      - name: outlined_button_1
-        properties: {text: Clear Text Area, role: outlined-button}
-        type: Button
-        layout_properties: {row: RJQRSQ, width_xs: 4, col_xs: 8}
-        event_bindings: {click: outlined_button_1_click}
-    - name: text_area
+    - layout_properties: {grid_position: 'GRCXMD,VXMOKM'}
+      name: text_area
       properties: {height: 190}
       type: TextArea
-      layout_properties: {grid_position: 'GRCXMD,VXMOKM'}
-    - name: convert
+    - event_bindings: {click: convert_click}
+      layout_properties: {grid_position: 'UHXLSC,LLCDVG'}
+      name: convert
       properties: {text: Convert, visible: true}
       type: Button
-      layout_properties: {grid_position: 'UHXLSC,LLCDVG'}
-      event_bindings: {click: convert_click}
-- name: label_1
-  properties: {text: NDC Summarizer, bold: true}
+    layout_properties: {grid_position: 'DSVPUF,OPUZVN'}
+    name: column_panel_3
+    properties: {}
+    type: ColumnPanel
+  layout_properties: {slot: default}
+  name: column_panel_1
+  properties: {col_widths: '{"OPUZVN":40}'}
+  type: ColumnPanel
+- layout_properties: {slot: title}
+  name: label_1
+  properties: {bold: true, text: NDC Summarizer}
   type: Label
-  layout_properties: {slot: title}
+container:
+  properties: {html: '@theme:standard-page.html'}
+  type: HtmlTemplate
+is_package: true
