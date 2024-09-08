@@ -157,27 +157,6 @@ def parse_konfirmasi(input_text):
       print("")
   return output_text
 
-# def parse_konfirmasi_new(input_text):
-#   print("\n Result Konfirmasi\n\n")
-#   lines = input_text.strip().split('\n')
-#   pass_idx = get_index(lines, "Passenger Details") + 2
-
-#   output_text =""
-#   # print("*Singapore Airlines*")
-#   #Get Passenger Data
-#   for i in lines[pass_idx:]:
-#     if("Contact Details" in i):
-#       break
-#     split_data = i.split("\t")
-#     no_urut = split_data[0]
-#     pass_data = no_urut + ". " + split_data[1]
-#     if(no_urut.isnumeric()):
-#       output_text += str(pass_data) + "\n"
-#       print(pass_data)
-
-#   print("")
-#   output_text += "\n"
-  
 def is_penawaran(text):
   split_text = text.split("\n")
   print(split_text)
