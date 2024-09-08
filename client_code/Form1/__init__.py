@@ -157,6 +157,8 @@ def parse_konfirmasi(input_text):
       print("")
   return output_text
 
+def parse_konfirmasi_new(input_text):
+  
 def is_penawaran(text):
   split_text = text.split("\n")
   print(split_text)
