@@ -157,6 +157,7 @@ def parse_konfirmasi(input_text):
       print("")
   return output_text
 
+# Air Asia #
 def is_penawaran(text):
   split_text = text.split("\n")
   print(split_text)
