@@ -57,6 +57,61 @@ def parse_penawaran(input_text):
   
   return output_text
 
+def parse_penawaran_new(input_text):
+    lines = input_text.strip().split('\n')
+    
+    # Initialize variables to store flight details
+    flights = []
+    current_flight = {}
+    
+    # Regex patterns to detect different parts of the input
+    flight_number_pattern = r"SQ\d{3,4}"  # Detects flight numbers like "SQ305"
+    time_pattern = r"[A-Z]{3} \d{2}:\d{2}"  # Detects times like "LHR 09:10"
+    date_pattern = r"\d{2} [A-Za-z]{3} \d{4}"  # Detects dates like "12 Dec 2024"
+    
+    i = 0
+    while i < len(lines):
+        line = lines[i].strip()
+
+        # Detect flight number and cabin class
+        if re.match(flight_number_pattern, line):
+            current_flight['flight_number'] = line.strip()  # e.g., "SQ305"
+            if 'CabinClass' not in current_flight and "Flexi" in lines[i+1]:
+                current_flight['cabin_class'] = lines[i+1].split(":")[-1].strip()  # e.g., "C"
+        
+        # Detect departure airport and time
+        if re.match(time_pattern, line):
+            current_flight['departure_airport'] = line.split()[0]
+            current_flight['departure_time'] = line.split()[1]
+
+        # Detect arrival airport and time
+        if 'departure_airport' in current_flight and re.match(r"[A-Z]{3}", line) and "Non-stop" in lines[i+1]:
+            current_flight['arrival_airport'] = line
+            current_flight['arrival_time'] = lines[i+2].split()[0]  # e.g., "07:55"
+
+        # Detect date for departure and arrival
+        if re.match(date_pattern, line):
+            if 'departure_date' not in current_flight:
+                current_flight['departure_date'] = line  # Set departure date
+            else:
+                current_flight['arrival_date'] = line  # Set arrival date
+
+        # Store the flight information and reset after processing a full flight
+        if 'departure_airport' in current_flight and 'arrival_airport' in current_flight \
+                and 'departure_time' in current_flight and 'departure_date' in current_flight:
+            flights.append(current_flight.copy())
+            current_flight = {}  # Reset for the next flight
+        
+        i += 1
+
+    # Generate the formatted output
+    output = ["*By Singapore Airlines*"]
+    for flight in flights:
+        output.append(f"{flight['departure_date']} | {flight['departure_airport']}-{flight['arrival_airport']} | {flight['departure_time']} | {flight['flight_number']} {flight['cabin_class']}")
+
+    return "\n".join(output)
+
+
 def get_index(list_item, search_text):
   for idx, item in enumerate(list_item):
     if search_text in item:
@@ -70,6 +125,12 @@ def is_konfirmasi(input_text):
     return True
   return False
 
+def is_konfirmasi_new(input_text):
+  lines = input_text.strip().split(' ')
+  if "Traveller Information" in lines:
+    return True
+  return False
+  
 def parse_konfirmasi(input_text):
   print("\n Result Konfirmasi\n\n")
   lines = input_text.strip().split('\n')
@@ -157,7 +218,7 @@ def parse_konfirmasi(input_text):
       print("")
   return output_text
 
-def parse_passenger_info_second_format(text):
+def parse_konfirmasi_newPassengers(text):
     # Split the input by lines
     lines = text.strip().split('\n')
     
@@ -180,20 +241,22 @@ def parse_passenger_info_second_format(text):
         passenger_details = passenger_data.split('\t')  # Assuming tab-separated fields
         
         # Extract title, first name (and other fields if needed)
-        title = passenger_details[0].strip() if len(passenger_details[0].strip()) > 0 else ""
-        first_name = passenger_details[1].strip() if len(passenger_details[0].strip()) > 0 else ""
-        
+        title = passenger_details[2].strip() if len(passenger_details[2].strip()) > 0 else ""
+        first_name = passenger_details[0].strip() if len(passenger_details[0].strip()) > 0 else ""
+        last_name = passenger_details[1].strip() if len(passenger_details[1].strip()) > 0 else ""
+      
         # Add the formatted passenger details to the list
-        passengers_info.append(f"{title} {first_name}".strip())
+        passengers_info.append(f"{title} {first_name} {last_name}".strip())
     
     # Combine all passengers into one string
     passenger_output = ""
     for idx, passenger in enumerate(passengers_info, 1):
         passenger_output += f"{idx}. {passenger}\n"
+        # print(idx, passenger)
     
     return passenger_output.strip()
   
-def parse_flight_info_second_format(text):
+def parse_konfirmasi_newFlightDetail(text):
     # Split the input by lines
     lines = text.strip().split('\n')
     
@@ -227,7 +290,7 @@ def parse_flight_info_second_format(text):
             flight_details.append(f"{departure_date} | {origin}-{destination} | {departure_time}-{arrival_time} | {flight_number} {cabin_class}")
         idx += 1
     
-    return "\n".join(flight_details)
+    return "*By Singapore Airlines*\n" + "\n".join(flight_details)
 
 
 # Air Asia #
@@ -419,16 +482,16 @@ def main_airasia(text):
 def main_sq(text):
     # Check for new input format by looking for specific keywords in the text
     if "Traveller Information" in text and "Flight Information" in text:
-        passenger_info = parse_passenger_info_second_format(text)
-        flight_info = parse_flight_info_second_format(text)
+      passenger_info = parse_konfirmasi_newPassengers(text)
+      flight_info = parse_konfirmasi_newFlightDetail(text)
         
-        return f"{passenger_info}\n\n*By Singapore Airlines*\n{flight_info}"
-    
-    # Continue using the existing parsing logic for the first format
-    elif is_konfirmasi(text):
-        return parse_konfirmasi(text)
+      return f"{passenger_info}\n\n{flight_info}"
     else:
-        return parse_penawaran(text)
+      return parse_penawaran_new(text)
+    # elif is_konfirmasi(text):
+    #   return parse_konfirmasi(text)
+    # else:
+    #   return parse_penawaran(text)
 
 
 class Form1(Form1Template):
