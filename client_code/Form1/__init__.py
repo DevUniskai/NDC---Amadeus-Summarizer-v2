@@ -157,6 +157,79 @@ def parse_konfirmasi(input_text):
       print("")
   return output_text
 
+def parse_passenger_info_second_format(text):
+    # Split the input by lines
+    lines = text.strip().split('\n')
+    
+    # Find the index of the "Traveller Information" section
+    traveller_info_index = lines.index("Traveller Information") + 2
+    
+    # Collect all passenger lines
+    passenger_lines = []
+    for i in range(traveller_info_index, len(lines)):
+        # Stop when another section (like "Contact Details" or "Flight Information") begins
+        if "Details" in lines[i] or "Flight Information" in lines[i]:
+            break
+        # Only append non-empty lines which are passenger details
+        if lines[i].strip():
+            passenger_lines.append(lines[i])
+
+    # Now iterate through each passenger's details
+    passengers_info = []
+    for passenger_data in passenger_lines:
+        passenger_details = passenger_data.split('\t')  # Assuming tab-separated fields
+        
+        # Extract title, first name (and other fields if needed)
+        title = passenger_details[0].strip() if len(passenger_details[0].strip()) > 0 else ""
+        first_name = passenger_details[1].strip() if len(passenger_details[0].strip()) > 0 else ""
+        
+        # Add the formatted passenger details to the list
+        passengers_info.append(f"{title} {first_name}".strip())
+    
+    # Combine all passengers into one string
+    passenger_output = ""
+    for idx, passenger in enumerate(passengers_info, 1):
+        passenger_output += f"{idx}. {passenger}\n"
+    
+    return passenger_output.strip()
+  
+def parse_flight_info_second_format(text):
+    # Split the input by lines
+    lines = text.strip().split('\n')
+    
+    # Find the index of the "Flight Information" section
+    flight_info_index = lines.index("Flight Information") + 2
+    
+    # Extract the flight details (loop through lines following the Flight Information section)
+    flight_details = []
+    idx = flight_info_index
+    
+    while idx < len(lines):
+        if "Traveller Information" in lines[idx]:
+            break
+        
+        # Extract flight details from each line and ignore the "Details" lines
+        if "Details" not in lines[idx]:  # Skip the "Details" line
+            flight_data = lines[idx].split('\t')
+            origin = flight_data[0].strip()
+            destination = flight_data[1].strip()
+            departure = flight_data[2].strip()
+            arrival = flight_data[3].strip()
+            flight_number = flight_data[4].strip()
+            cabin_class = flight_data[5].strip()
+            
+            # Extract departure and arrival times
+            departure_time = departure.split()[-1]
+            arrival_time = arrival.split()[-1]
+            departure_date = ' '.join(departure.split()[:3])  # Format the departure date
+
+            # Combine the data in the desired format
+            flight_details.append(f"{departure_date} | {origin}-{destination} | {departure_time}-{arrival_time} | {flight_number} {cabin_class}")
+        idx += 1
+    
+    return "\n".join(flight_details)
+
+
 # Air Asia #
 def is_penawaran(text):
   split_text = text.split("\n")
@@ -344,14 +417,18 @@ def main_airasia(text):
     return parse_konfirmasi_air_asia(text)
 
 def main_sq(text):
-  if is_konfirmasi(text) == True:
-    kon = parse_konfirmasi(text)
-    return kon
-
-  else:
-    flights = parse_penawaran(text)
-    return flights
-
+    # Check for new input format by looking for specific keywords in the text
+    if "Traveller Information" in text and "Flight Information" in text:
+        passenger_info = parse_passenger_info_second_format(text)
+        flight_info = parse_flight_info_second_format(text)
+        
+        return f"{passenger_info}\n\n*By Singapore Airlines*\n{flight_info}"
+    
+    # Continue using the existing parsing logic for the first format
+    elif is_konfirmasi(text):
+        return parse_konfirmasi(text)
+    else:
+        return parse_penawaran(text)
 
 
 class Form1(Form1Template):
