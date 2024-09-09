@@ -119,7 +119,7 @@ def parse_penawaran_new(input_text):
     
     return "\n".join(output)
 
-def parse_penawaran_tes(input_text):
+def parse_penawaran(input_text):
     print("\n Result Penawaran\n\n")
     lines = input_text.strip().split('\n')
 
