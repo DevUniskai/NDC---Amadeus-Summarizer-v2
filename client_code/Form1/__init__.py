@@ -76,27 +76,29 @@ def parse_penawaran_new(input_text):
         # Detect flight number and cabin class
         if re.match(flight_number_pattern, line):
             current_flight['flight_number'] = line.strip()  # e.g., "SQ305"
-            if 'CabinClass' not in current_flight and "Flexi" in lines[i+1]:
+            if 'CabinClass' not in current_flight and ":" in lines[i+1]:
                 current_flight['cabin_class'] = lines[i+1].split(":")[-1].strip()  # e.g., "C"
-        
+            i += 1  # Move to the next line to avoid duplicate processing
+
         # Detect departure airport and time
         if re.match(time_pattern, line):
             current_flight['departure_airport'] = line.split()[0]
             current_flight['departure_time'] = line.split()[1]
 
-        # Detect arrival airport and time
-        if 'departure_airport' in current_flight and re.match(r"[A-Z]{3}", line) and "Non-stop" in lines[i+1]:
-            current_flight['arrival_airport'] = line
-            current_flight['arrival_time'] = lines[i+2].split()[0]  # e.g., "07:55"
+        # Detect arrival airport and time (after Non-stop or One-stop line)
+        if re.match(r"[A-Z]{3}", line) and 'departure_airport' in current_flight:
+            if "stop" in lines[i+1]:  # If the next line indicates stops
+                current_flight['arrival_airport'] = line
+                current_flight['arrival_time'] = lines[i+2].split()[0]  # e.g., "07:55"
 
-        # Detect date for departure and arrival
+        # Detect departure and arrival dates
         if re.match(date_pattern, line):
             if 'departure_date' not in current_flight:
                 current_flight['departure_date'] = line  # Set departure date
             else:
                 current_flight['arrival_date'] = line  # Set arrival date
 
-        # Store the flight information and reset after processing a full flight
+        # Store flight info and reset when a flight is fully processed
         if 'departure_airport' in current_flight and 'arrival_airport' in current_flight \
                 and 'departure_time' in current_flight and 'departure_date' in current_flight:
             flights.append(current_flight.copy())
@@ -107,10 +109,17 @@ def parse_penawaran_new(input_text):
     # Generate the formatted output
     output = ["*By Singapore Airlines*"]
     for flight in flights:
-        output.append(f"{flight['departure_date']} | {flight['departure_airport']}-{flight['arrival_airport']} | {flight['departure_time']} | {flight['flight_number']} {flight['cabin_class']}")
+        dep_date = flight['departure_date']
+        dep_airport = flight['departure_airport']
+        arr_airport = flight['arrival_airport']
+        dep_time = flight['departure_time']
+        flight_num = flight['flight_number']
+        cabin_class = flight['cabin_class']
+
+        # Format as requested: "Date | Origin-Destination | DepartureTime | FlightNumber CabinClass"
+        output.append(f"{dep_date} | {dep_airport}-{arr_airport} | {dep_time} | {flight_num} {cabin_class}")
 
     return "\n".join(output)
-
 
 def get_index(list_item, search_text):
   for idx, item in enumerate(list_item):
