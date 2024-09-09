@@ -6,6 +6,10 @@ from datetime import datetime
 import sys
 
 def diff_day(date1, date2):  
+   # Check if either date is 'Unknown Date'
+  if date1 == "Unknown Date" or date2 == "Unknown Date":
+    return 0  # Return 0 if dates are unknown, as no difference can be calculated
+    
   # Convert strings to date objects
   date_object1 = datetime.strptime(date1, "%d %b %Y")
   date_object2 = datetime.strptime(date2, "%d %b %Y")
@@ -114,6 +118,78 @@ def parse_penawaran_new(input_text):
         output.append(f"{dep_date} | {dep_airport}-{arr_airport} | {dep_time} | {flight_num} {cabin_class}")
     
     return "\n".join(output)
+
+def parse_penawaran_tes(input_text):
+    print("\n Result Penawaran\n\n")
+    lines = input_text.strip().split('\n')
+
+    # Initialize lists to hold flight details
+    flight_class = []
+    flight_code = []
+    aircraft_info = []
+
+    for idx, line in enumerate(lines):
+        if line.startswith("Singapore Airlines"):
+            # Extract flight number if available
+            if idx + 1 < len(lines) and len(lines[idx + 1].split(" ")) > 1:
+                flight_code.append(lines[idx + 1].split(" ")[1])  # Extract flight number
+            else:
+                flight_code.append("Unknown Flight Code")
+
+            # Extract flight class if available
+            if idx + 2 < len(lines) and ":" in lines[idx + 2]:
+                flight_class.append(lines[idx + 2].split(":")[1].strip())  # Extract class details
+            else:
+                flight_class.append("Unknown Class")
+
+            # Extract aircraft info if available
+            if idx + 4 < len(lines) and ":" in lines[idx + 4]:
+                aircraft_info.append(lines[idx + 4].split(":")[1].strip())  # Extract aircraft details
+            else:
+                aircraft_info.append("Unknown Aircraft")
+
+    # Find places and dates
+    place_index = [idx for idx, line in enumerate(lines) if len(line) == 3]  # Extract airport codes
+    date_time = []
+
+    for idx in place_index:
+        if idx + 2 < len(lines):
+            time_line = lines[idx + 1]
+            date_line = lines[idx + 2]
+
+            # Skip non-date lines (e.g., "One stop")
+            if not any(char.isdigit() for char in date_line):
+                continue
+
+            time_info = time_line.split(" ")
+
+            # Safely extract time and date
+            time = time_info[0] if len(time_info) > 0 else "Unknown Time"
+            try:
+                date = datetime.strptime(date_line.strip(), "%d %b %Y").strftime("%d %b %Y")
+            except ValueError:
+                date = "Unknown Date"
+            date_time.append([time, date])
+        else:
+            date_time.append(["Unknown Time", "Unknown Date"])
+
+    output_text = "*By Singapore Airlines*\n"
+    for i in range(0, len(place_index), 2):
+        flight_idx = i // 2  # index for flight details
+
+        # Safely construct the output text
+        if i + 1 < len(place_index) and flight_idx < len(flight_code):
+            output_text += f"{date_time[i][1]} | {lines[place_index[i]]}-{lines[place_index[i+1]]} | "
+            output_text += f"{date_time[i][0]}-{date_time[i+1][0]} | {flight_code[flight_idx]} {flight_class[flight_idx]} | Aircraft: {aircraft_info[flight_idx]}"
+
+            # Calculate day difference only if both dates are known
+            days = diff_day(date_time[i][1], date_time[i+1][1])
+            if days > 0:
+                output_text += f" (+{days} days)"
+
+            output_text += "\n"
+
+    return output_text
 
 def get_index(list_item, search_text):
   for idx, item in enumerate(list_item):
@@ -490,7 +566,7 @@ def main_sq(text):
         
       return f"{passenger_info}\n\n{flight_info}"
     else:
-      return parse_penawaran_new(text)
+      return parse_penawaran_tes(text)
     # elif is_konfirmasi(text):
     #   return parse_konfirmasi(text)
     # else:
