@@ -152,80 +152,6 @@ def parse_penawaran_tes(input_text):
         'departure_airports': [],
         'arrival_airports': [],
         'departure_times': [],
-        'flight_numbers': [],
-        'cabin_classes': []
-    }
-    i = 0
-    
-    while i < len(lines):
-        line = lines[i].strip()
-        next_line = lines[i + 1].strip() if i + 1 < len(lines) else ""
-        before_line = lines[i-1].strip()
-      
-        # Detect flight number and cabin class (flexible cabin class)
-        if re.match(r"SQ\d{3,4}", line) and ":" in next_line:
-            flight_number = line.strip()  # Get the flight number
-            cabin_class = next_line.split(':')[-1].strip()  # Get cabin class, regardless of the text before ":"
-            current_flight_group['flight_numbers'].append(flight_number)
-            current_flight_group['cabin_classes'].append(cabin_class)
-
-        # Detect departure airport and time
-        if re.match(r"[A-Z]{3} \d{2}:\d{2}", line):
-            parts = line.split()
-            current_flight_group['departure_airports'].append(parts[0])
-            current_flight_group['departure_times'].append(parts[1])
-            print(parts)
-          
-        # Detect arrival airport (next airport code after "stop" or time block)
-        if re.match(r"[A-Z]{3} \d{2}:\d{2}", line) and "stop" in before_line:
-            parts = line.split()
-            current_flight_group['arrival_airports'].append(parts[0])
-        
-        # Detect dates
-        if re.match(r"\d{2} [A-Za-z]{3} \d{4}", line):
-            if current_flight_group['departure_date'] == '':
-                current_flight_group['departure_date'] = line  # Assign the first date as departure date
-            else:
-                current_flight_group['arrival_date'] = line  # Assign the second date as arrival date
-        
-        # Append flight group when dates and all details are filled
-        if len(current_flight_group['departure_airports']) == len(current_flight_group['flight_numbers']) and current_flight_group['arrival_date'] != '':
-            flight_details.append(current_flight_group.copy())
-            # Reset the group for the next set of flights
-            current_flight_group = {
-                'departure_date': '',
-                'arrival_date': '',
-                'departure_airports': [],
-                'arrival_airports': [],
-                'departure_times': [],
-                'flight_numbers': [],
-                'cabin_classes': []
-            }
-
-        i += 1
-
-    # Format the output
-    output = ["*By Singapore Airlines*"]
-    for flight_group in flight_details:
-        departure_airports = "-".join(flight_group['departure_airports'])
-        arrival_airports = "-".join(flight_group['arrival_airports'])
-        departure_times = "-".join(flight_group['departure_times'])
-        flight_numbers = " - ".join([f"{num} {cls}" for num, cls in zip(flight_group['flight_numbers'], flight_group['cabin_classes'])])
-        output.append(f"{flight_group['departure_date']} - {flight_group['arrival_date']} | {departure_airports}-{arrival_airports} | {departure_times} | {flight_numbers}")
-    
-    return "\n".join(output) 
-
-# coba coba
-def parse_penawaran_coba(input_text):
-    lines = input_text.strip().split('\n')
-    
-    flight_details = []
-    current_flight_group = {
-        'departure_date': '',
-        'arrival_date': '',
-        'departure_airports': [],
-        'arrival_airports': [],
-        'departure_times': [],
         'arrival_times': [],
         'flight_numbers': [],
         'cabin_classes': []
@@ -259,7 +185,7 @@ def parse_penawaran_coba(input_text):
         if re.match(r"[A-Z]{3} \d{2}:\d{2}", line) and "stop" in before_line:
             parts = line.split()
             current_flight_group['arrival_airports'].append(parts[0])
-            current_flight_group['arrival_time'].append(parts[1])
+            current_flight_group['arrival_times'].append(parts[1])
             print(parts)
         
         # Detect dates
@@ -279,7 +205,7 @@ def parse_penawaran_coba(input_text):
                 'departure_airports': [],
                 'arrival_airports': [],
                 'departure_times': [],
-                'arrival_time': [],
+                'arrival_times': [],
                 'flight_numbers': [],
                 'cabin_classes': []
             }
@@ -298,7 +224,8 @@ def parse_penawaran_coba(input_text):
     
     return "\n".join(output) 
 
-def parse_penawaran_try(input_text):
+# coba coba 2
+def parse_penawaran_coba(input_text):
     lines = input_text.strip().split('\n')
     
     flight_details = []
@@ -317,7 +244,9 @@ def parse_penawaran_try(input_text):
     while i < len(lines):
         line = lines[i].strip()
         next_line = lines[i + 1].strip() if i + 1 < len(lines) else ""
-
+        before_line = lines[i-1].strip() if i - 1 >= 0 else ""
+        before_line1 = lines[i-6].strip() if i - 6 >= 0 else ""
+      
         # Detect flight number and cabin class (flexible cabin class)
         if re.match(r"SQ\d{3,4}", line) and ":" in next_line:
             flight_number = line.strip()  # Get the flight number
@@ -328,13 +257,17 @@ def parse_penawaran_try(input_text):
         # Detect departure airport and time
         if re.match(r"[A-Z]{3} \d{2}:\d{2}", line):
             parts = line.split()
-            current_flight_group['departure_airports'].append(parts[0])
-            current_flight_group['departure_times'].append(parts[1])
+            if "Singapore Airlines" in before_line1 or len(current_flight_group['departure_airports']) == 0:
+                # Append as departure airport
+                current_flight_group['departure_airports'].append(parts[0])
+                current_flight_group['departure_times'].append(parts[1])
+            else:
+                # Append as arrival airport
+                current_flight_group['arrival_airports'].append(parts[0])
+                current_flight_group['arrival_times'].append(parts[1])
 
-        # Detect arrival airport and time after a stop or time block
-        if re.match(r"[A-Z]{3}", line) and ("stop" in next_line or re.match(r"\d{2}:\d{2}", next_line)):
-            current_flight_group['arrival_airports'].append(line)
-            current_flight_group['arrival_times'].append(next_line)
+        if re.match(r"[A-Z]{3}", line) and "stop" in next_line:
+            current_flight_group['departure_airports'].append(line)
 
         # Detect dates
         if re.match(r"\d{2} [A-Za-z]{3} \d{4}", line):
@@ -363,22 +296,12 @@ def parse_penawaran_try(input_text):
     # Format the output
     output = ["*By Singapore Airlines*"]
     for flight_group in flight_details:
-        # For each flight group, divide into individual legs
-        for j in range(len(flight_group['flight_numbers'])):
-            departure_airport = flight_group['departure_airports'][j]
-            arrival_airport = flight_group['arrival_airports'][j] if j < len(flight_group['arrival_airports']) else "Unknown"
-            departure_time = flight_group['departure_times'][j]
-            arrival_time = flight_group['arrival_times'][j] if j < len(flight_group['arrival_times']) else "Unknown"
-            flight_number = flight_group['flight_numbers'][j]
-            cabin_class = flight_group['cabin_classes'][j]
-            departure_date = flight_group['departure_date'] if j == 0 else flight_group['arrival_date']
-
-            # Special handling to ensure second leg starts from the arrival airport of the previous leg
-            if j > 0:
-                departure_airport = flight_group['arrival_airports'][j-1]
-                departure_time = flight_group['arrival_times'][j-1]
-
-            output.append(f"{departure_date} | {departure_airport}-{arrival_airport} | {departure_time}-{arrival_time} | {flight_number} {cabin_class}")
+        departure_airports = "-".join(flight_group['departure_airports'])
+        arrival_airports = "-".join(flight_group['arrival_airports'])
+        departure_times = "-".join(flight_group['departure_times'])
+        arrival_times = "-".join(flight_group['arrival_times'])
+        flight_numbers = " - ".join([f"{num} {cls}" for num, cls in zip(flight_group['flight_numbers'], flight_group['cabin_classes'])])
+        output.append(f"{flight_group['departure_date']} - {flight_group['arrival_date']} | {departure_airports}-{arrival_airports} | {departure_times}-{arrival_times} | {flight_numbers}")
     
     return "\n".join(output)
 
@@ -758,6 +681,7 @@ def main_sq(text):
       return f"{passenger_info}\n\n{flight_info}"
     else:
       return parse_penawaran_coba(text)
+      # return parse_penawaran_tes(text)
     # elif is_konfirmasi(text):
     #   return parse_konfirmasi(text)
     # else:
