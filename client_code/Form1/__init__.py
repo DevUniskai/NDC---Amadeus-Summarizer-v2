@@ -61,6 +61,70 @@ def parse_penawaran(input_text):
   
   return output_text
 
+# format input paling baru (perflight)
+def parse_penawaran_newFormat(input_text):
+    lines = input_text.strip().split('\n')
+  
+    flight_details = []
+    current_flight_group = {
+        'departure_date': '',
+        'departure_airports': [],
+        'arrival_airports': [],
+        'departure_times': [],
+        'arrival_times': [],
+        'flight_numbers': []
+    }
+    i = 0
+  
+    while i < len(lines):
+        line = lines[i].strip()
+
+        if re.match(r"\d{2} [A-Za-z]{3} \d{4}", line):  # Match date
+            if current_flight_group['departure_date'] == '':
+                current_flight_group['departure_date'] = line
+
+        if re.match(r"\d{2}:\d{2}", line):  # Match time
+            if len(current_flight_group['departure_times']) == 0:
+                current_flight_group['departure_times'].append(line)
+            elif len(current_flight_group['arrival_times']) == 0:
+                current_flight_group['arrival_times'].append(line)
+
+        if re.match(r"^[A-Z]{3}$", line):  # Match airport code
+            if len(current_flight_group['departure_airports']) == 0:
+                current_flight_group['departure_airports'].append(line)
+            elif len(current_flight_group['arrival_airports']) == 0:
+                current_flight_group['arrival_airports'].append(line)
+
+        if re.match(r"SQ\d{2,4}", line) or re.match(r"SQ\d{3,4}", line):  # Match flight number
+            current_flight_group['flight_numbers'].append(line)
+
+        # Append flight group when dates and all details are filled
+        if all(len(current_flight_group[key]) == 1 for key in ['departure_airports', 'arrival_airports', 'departure_times', 'arrival_times', 'flight_numbers']):
+            flight_details.append(current_flight_group.copy())
+            # Reset the group for the next set of flights
+            current_flight_group = {
+                'departure_date': '',
+                'departure_airports': [],
+                'arrival_airports': [],
+                'departure_times': [],
+                'arrival_times': [],
+                'flight_numbers': []
+            }
+
+        i += 1
+
+    # Format the output
+    output = ["*By Singapore Airlines*"]
+    for flight_group in flight_details:
+        departure_airports = "-".join(flight_group['departure_airports'])
+        arrival_airports = "-".join(flight_group['arrival_airports'])
+        departure_times = "-".join(flight_group['departure_times'])
+        arrival_times = "-".join(flight_group['arrival_times'])
+        flight_numbers = "-".join(flight_group['flight_numbers'])
+        output.append(f"{flight_group['departure_date']} | {departure_airports}-{arrival_airports} | {departure_times}-{arrival_times} | {flight_numbers}")
+  
+    return "\n".join(output)
+  
 # format per leg dari flight yang sama beda baris
 def parse_penawaran_new(input_text):
     lines = input_text.strip().split('\n')
@@ -680,7 +744,7 @@ def main_sq(text):
         
       return f"{passenger_info}\n\n{flight_info}"
     else:
-      return parse_penawaran_coba(text)
+      return parse_penawaran_newFormat(text)
       # return parse_penawaran_tes(text)
     # elif is_konfirmasi(text):
     #   return parse_konfirmasi(text)
