@@ -96,7 +96,7 @@ def parse_penawaran_1(input_text):
         i += 12 
     else:
       break
-    
+  
   output = "*By Singapore Airlines*\n"
   for flight in flights:
       output += f"{flight['departure_date']} | {flight['departure_airport_code']}-{flight['arrival_airport_code']} | {flight['departure_time']}-{flight['arrival_time']} | {flight['flight_code']}\n"
