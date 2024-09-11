@@ -519,7 +519,7 @@ def parse_konfirmasi_1(input_text):
 
   for data in passengerData:
     data = data.split("\t")
-    passengers.append(f"{data[2] if data[2] == '' else ''} {data[0]} {data[1]}")
+    passengers.append(f"{data[2] if data[2] != '' else ''} {data[0]} {data[1]}")
 
   for i, passenger in enumerate(passengers, 1):
     output_text += f"{i}. {passenger}\n"
@@ -531,7 +531,7 @@ def parse_konfirmasi_1(input_text):
     output_text += f"{flight['departure_date']} | {flight['departure_airport_code']}-{flight['arrival_airport_code']} | {flight['departure_time']}-{flight['arrival_time']} | {flight['flight_code']} {flight['cabin_class']}\n"
 
   return output_text
-  
+
 # Air Asia #
 def is_penawaran(text):
   split_text = text.split("\n")

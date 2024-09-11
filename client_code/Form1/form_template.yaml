@@ -5,7 +5,7 @@ components:
     type: LinearPanel
   - layout_properties: {}
     name: rich_text_1
-    properties: {content: v.1.0}
+    properties: {content: v.2.0}
     type: RichText
   layout_properties: {slot: nav-right}
   name: navbar_links
