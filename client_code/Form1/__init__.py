@@ -726,27 +726,19 @@ def main_amd(text):
     return handle_schedule_amd(text)
 
 def main_airasia(text):  
-  
   if(is_penawaran(text)):
     return parse_penawaran_air_asia(text)
   else:
     return parse_konfirmasi_air_asia(text)
 
 def main_sq(text):
-    # if "Traveller Information" in text and "Flight Information" in text:
-    #   return parse_konfirmasi_1(text)
-    #   passenger_info = parse_konfirmasi_newPassengers(text)
-    #   flight_info = parse_konfirmasi_newFlightDetail(text)
-        
-    #   return f"{passenger_info}\n\n{flight_info}"
-    # else:
-    #   # return parse_penawaran_coba(text)
-    #   return parse_penawaran_1(text)
-    if is_konfirmasi_new(text):
-      return parse_konfirmasi_1(text)
-    else:
-      return parse_penawaran_1(text)
+  if is_konfirmasi_new(text):
+    return parse_konfirmasi_1(text)
+  else:
+    return parse_penawaran_1(text)
 
+def main_garuda(text):
+  return text
 
 class Form1(Form1Template):
   def __init__(self, **properties):
@@ -778,7 +770,10 @@ class Form1(Form1Template):
 
       if airline == "AMADEUS":
         summary = main_amd(self.text_area.text)
-        
+
+      if airline == "Garuda":
+        summary = main_garuda(self.text_area.text)
+      
       if summary:
         self.btn_copy.visible = True
         self.result.visible = True
