@@ -66,6 +66,7 @@ def parse_penawaran_1(input_text):
   # print("halo")
   flights = []
   i = 0
+
   first_departure_date = None
   
   while i < len(lines):
@@ -85,7 +86,7 @@ def parse_penawaran_1(input_text):
       
       if "Layover" not in lines[i-1]:
         first_departure_date = flight['departure_date']
-        curr = lines[i+1]
+        # print(first_departure_date)
       
       days = diff_day(first_departure_date, flight['arrival_date'])
       # print(days)
