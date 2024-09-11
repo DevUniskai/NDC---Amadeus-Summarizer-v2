@@ -61,6 +61,32 @@ def parse_penawaran(input_text):
   
   return output_text
 
+def parse_penawaran_1(input_text):
+  lines = [line.strip() for line in input_text.splitlines() if line.strip()]
+  flights = []
+  i = 0
+  while i < len(lines):
+    flight = {}
+    if len(lines) - i >= 12:
+      flight['departure_date'] = lines[i]
+      flight['arrival_date'] = lines[i]
+      flight['departure_time'] = lines[i + 2]
+      flight['arrival_time'] = lines[i + 3]
+      flight['departure_airport_code'] = lines[i + 4]
+      flight['arrival_airport_code'] = lines[i + 5]
+      flight['flight_code'] = lines[i + 9]
+      flights.append(flight)
+      if i+13 <= len(lines) and "layover" in lines[i+12].lower():
+        i += 13
+      else:
+        i += 12 
+    else:
+      break
+  output = "By Singapore Airlines\n"
+  for flight in flights:
+      output += f"{flight['departure_date']} | {flight['departure_airport_code']}-{flight['arrival_airport_code']} | {flight['departure_time']}-{flight['arrival_time']} | {flight['flight_code']}\n"
+  return output
+  
 # format input paling baru (perflight) pake yg ini
 def parse_penawaran_newFormat(input_text):
     lines = input_text.strip().split('\n')
@@ -302,8 +328,8 @@ def is_konfirmasi(input_text):
   return False
 
 def is_konfirmasi_new(input_text):
-  lines = input_text.strip().split(' ')
-  if "Traveller Information" in lines:
+  # lines = input_text.strip().split(' ')
+  if "Traveller Information" in input_text:
     return True
   return False
   
@@ -468,7 +494,44 @@ def parse_konfirmasi_newFlightDetail(text):
     
     return "*By Singapore Airlines*\n" + "\n".join(flight_details)
 
+def parse_konfirmasi_1(input_text):
+  print("\n Result Konfirmasi\n\n")
+  lines = [line.strip() for line in input_text.splitlines() if line.strip()]
+  flightData = [line.replace("\t", " ") for line in lines if re.match(r'([A-Z]{3})\s+([A-Z]{3})\s+(\d{2} [A-Za-z]{3} \d{4} \d{2}:\d{2})\s+(\d{2} [A-Za-z]{3} \d{4} \d{2}:\d{2})\s+(SQ\d{3,4})\s+([A-Z])\s+([A-Z0-9]+)', line)]
+  passengerData = [line for line in lines if "Full Detail" in line]
 
+  flights = []
+  passengers = []
+  output_text = ""
+
+  for data in flightData:
+    flight = {}
+    data = data.split(" ")
+    flight['departure_airport_code'] = data[0]
+    flight['arrival_airport_code'] = data[1]
+    flight['departure_date'] = data[2] + " " + data[3] + " " + data[4]
+    flight['departure_time'] = data[5]
+    flight['arrival_date'] = data[6] + " " + data[7] + " " + data[8]
+    flight['arrival_time'] = data[9]
+    flight['flight_code'] = data[10]
+    flight['cabin_class'] = data[11]
+    flights.append(flight)
+
+  for data in passengerData:
+    data = data.split("\t")
+    passengers.append(f"{data[2] if data[2] == '' else ''} {data[0]} {data[1]}")
+
+  for i, passenger in enumerate(passengers, 1):
+    output_text += f"{i}. {passenger}\n"
+  
+  output_text += "\n"
+  output_text += "By Singapore Airlines\n"
+
+  for flight in flights:
+    output_text += f"{flight['departure_date']} | {flight['departure_airport_code']}-{flight['arrival_airport_code']} | {flight['departure_time']}-{flight['arrival_time']} | {flight['flight_code']} {flight['cabin_class']}\n"
+
+  return output_text
+  
 # Air Asia #
 def is_penawaran(text):
   split_text = text.split("\n")
@@ -656,19 +719,19 @@ def main_airasia(text):
     return parse_konfirmasi_air_asia(text)
 
 def main_sq(text):
-    # Check for new input format by looking for specific keywords in the text
-    if "Traveller Information" in text and "Flight Information" in text:
-      passenger_info = parse_konfirmasi_newPassengers(text)
-      flight_info = parse_konfirmasi_newFlightDetail(text)
+    # if "Traveller Information" in text and "Flight Information" in text:
+    #   return parse_konfirmasi_1(text)
+    #   passenger_info = parse_konfirmasi_newPassengers(text)
+    #   flight_info = parse_konfirmasi_newFlightDetail(text)
         
-      return f"{passenger_info}\n\n{flight_info}"
-    else:
-      # return parse_penawaran_coba(text)
-      return parse_penawaran_tes(text)
-    # elif is_konfirmasi(text):
-    #   return parse_konfirmasi(text)
+    #   return f"{passenger_info}\n\n{flight_info}"
     # else:
-    #   return parse_penawaran(text)
+    #   # return parse_penawaran_coba(text)
+    #   return parse_penawaran_1(text)
+    if is_konfirmasi_new(text):
+      return parse_konfirmasi_1(text)
+    else:
+      return parse_penawaran_1(text)
 
 
 class Form1(Form1Template):
