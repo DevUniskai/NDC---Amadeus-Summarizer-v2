@@ -81,11 +81,14 @@ def parse_penawaran_1(input_text):
       flight['arrival_airport_code'] = lines[i + 5]
       flight['flight_code'] = lines[i + 9]
 
-      if first_departure_date is None:
+      # print(flight['arrival_date'])
+      
+      if "Layover" not in lines[i-1]:
         first_departure_date = flight['departure_date']
-
+        curr = lines[i+1]
+      
       days = diff_day(first_departure_date, flight['arrival_date'])
-      print(days)
+      # print(days)
       flight['arrival_time'] += f"(+{days})" if days > 0 else ""
       
       flights.append(flight)
