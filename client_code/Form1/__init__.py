@@ -82,7 +82,7 @@ def parse_penawaran_1(input_text):
         i += 12 
     else:
       break
-  output = "By Singapore Airlines\n"
+  output = "*By Singapore Airlines*\n"
   for flight in flights:
       output += f"{flight['departure_date']} | {flight['departure_airport_code']}-{flight['arrival_airport_code']} | {flight['departure_time']}-{flight['arrival_time']} | {flight['flight_code']}\n"
   return output
@@ -525,7 +525,7 @@ def parse_konfirmasi_1(input_text):
     output_text += f"{i}. {passenger}\n"
   
   output_text += "\n"
-  output_text += "By Singapore Airlines\n"
+  output_text += "*By Singapore Airlines*\n"
 
   for flight in flights:
     output_text += f"{flight['departure_date']} | {flight['departure_airport_code']}-{flight['arrival_airport_code']} | {flight['departure_time']}-{flight['arrival_time']} | {flight['flight_code']} {flight['cabin_class']}\n"
