@@ -63,19 +63,33 @@ def parse_penawaran(input_text):
 
 def parse_penawaran_1(input_text):
   lines = [line.strip() for line in input_text.splitlines() if line.strip()]
+  # print("halo")
   flights = []
   i = 0
+  first_departure_date = None
+  
   while i < len(lines):
+    # print("looping")
     flight = {}
+
     if len(lines) - i >= 12:
       flight['departure_date'] = lines[i]
-      flight['arrival_date'] = lines[i]
+      flight['arrival_date'] = lines[i+1]
       flight['departure_time'] = lines[i + 2]
       flight['arrival_time'] = lines[i + 3]
       flight['departure_airport_code'] = lines[i + 4]
       flight['arrival_airport_code'] = lines[i + 5]
       flight['flight_code'] = lines[i + 9]
+
+      if first_departure_date is None:
+        first_departure_date = flight['departure_date']
+
+      days = diff_day(first_departure_date, flight['arrival_date'])
+      print(days)
+      flight['arrival_time'] += f"(+{days})" if days > 0 else ""
+      
       flights.append(flight)
+      
       if i+13 <= len(lines) and "layover" in lines[i+12].lower():
         i += 13
       else:
