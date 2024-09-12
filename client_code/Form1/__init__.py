@@ -86,11 +86,14 @@ def parse_penawaran_1(input_text):
       
       if "Layover" not in lines[i-1]:
         first_departure_date = flight['departure_date']
-        # print(first_departure_date)
-      
-      days = diff_day(first_departure_date, flight['arrival_date'])
-      # print(days)
-      flight['arrival_time'] += f"(+{days})" if days > 0 else ""
+        print("first " + first_departure_date)
+
+      # and i+12 >= len(lines) -> untuk input 2 layover (3 flight) masih keitung days di flight ke-2nya
+      if "Layover" in lines[i-1]:
+        print("last " + flight['arrival_date'])
+        days = diff_day(first_departure_date, flight['arrival_date'])
+        print(days)
+        flight['arrival_time'] += f"(+{days})" if days > 0 else ""
       
       flights.append(flight)
       
