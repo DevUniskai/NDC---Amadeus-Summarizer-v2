@@ -692,6 +692,8 @@ def handle_schedule_amd(text):
 
   for i in split:
     index = i.strip().split(" ")
+
+    if i 
     if flag == int(index[0]):
       output += clean_schedule_amd(index)
       flag+=1
