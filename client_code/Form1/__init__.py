@@ -692,7 +692,14 @@ def handle_schedule_amd(text):
 
   for i in split:
     index = i.strip().split(" ")
-    
+
+    # kalau inputnya ada yang ga pakai '*'
+    # print("before: " + index[6])
+    if '*' not in index[6]:
+      index[6] = index[6] + '*' + index[7]
+      del index[7]
+      # print("after: " + index[6])
+      
     if flag == int(index[0]):
       output += clean_schedule_amd(index)
       flag+=1
@@ -747,7 +754,7 @@ def main_sq(text):
     return parse_penawaran_1(text)
 
 def main_garuda(text):
-  return text
+  return "*****Still on Development*****\n.\n.\n.\n.\n.\n.\n.\n.\n*****Still on Development*****"
 
 class Form1(Form1Template):
   def __init__(self, **properties):
