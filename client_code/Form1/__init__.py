@@ -779,8 +779,8 @@ def handle_confirmation_garuda(text):
       index = item.strip().split(" ")
       for i in index:
         if index[i] == " ":
-          
-      print(index)
+          index[i] = index[i+1]
+        print(index)
       output += clean_schedule_garuda(index)          
   
   return output
