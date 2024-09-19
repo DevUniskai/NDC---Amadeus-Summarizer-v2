@@ -777,6 +777,9 @@ def handle_confirmation_garuda(text):
         output += "\n*By ___ Airlines*\n"
         flag = 1
       index = item.strip().split(" ")
+      for i in index:
+        if index[i] == " ":
+          
       print(index)
       output += clean_schedule_garuda(index)          
   
