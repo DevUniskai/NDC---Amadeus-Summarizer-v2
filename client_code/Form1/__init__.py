@@ -718,7 +718,7 @@ def handle_confirmation_amd(text):
   for idx, item in enumerate(split):
     if idx == 0:
       pnr = item
-      print("this is pnr: " + pnr + "\n")
+      # print("this is pnr: " + pnr + "\n")
     elif "." in item:
       names = item.strip().split(".")
       # print(names)
@@ -733,7 +733,7 @@ def handle_confirmation_amd(text):
         output += "\n*By ___ Airlines*\n"
         flag = 1
       index = item.strip().split(" ")
-      print(index)
+      # print(index)
       output += clean_schedule_amd(index)          
   
   return output
