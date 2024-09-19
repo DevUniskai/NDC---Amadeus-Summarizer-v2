@@ -765,12 +765,11 @@ def handle_confirmation_garuda(text):
       # print("this is pnr: " + pnr + "\n")
     elif "." in item:
       names = item.strip().split(".")
-      # print(names)
+      print(names)
       for name in names:
         new_name = remove_numeric_amd(name)
         if len(new_name) != 0:
           output += str(count) + ". " + handle_name_amd(new_name) + "\n"
-          # print(output)
           count+=1
     else:
       if flag == 0:
