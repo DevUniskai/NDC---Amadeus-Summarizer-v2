@@ -707,6 +707,7 @@ def handle_schedule_amd(text):
 
 def handle_confirmation_amd(text):
   split = text.split("\n")
+  # print(split)
   split = [i for i in split if "RTSVC" not in i]
   split = [i for i in split if len(i) != 0]
 
@@ -717,23 +718,70 @@ def handle_confirmation_amd(text):
   for idx, item in enumerate(split):
     if idx == 0:
       pnr = item
+      print("this is pnr: " + pnr + "\n")
     elif "." in item:
       names = item.strip().split(".")
+      # print(names)
       for name in names:
         new_name = remove_numeric_amd(name)
         if len(new_name) != 0:
           output += str(count) + ". " + handle_name_amd(new_name) + "\n"
+          # print(output)
           count+=1
     else:
       if flag == 0:
         output += "\n*By ___ Airlines*\n"
         flag = 1
       index = item.strip().split(" ")
+      print(index)
       output += clean_schedule_amd(index)          
   
   return output
 
 ### END of AMADEUS FUNCTION LOGIC ###
+
+### GARUDA ###
+def clean_schedule_garuda(text):
+  datetime = text[5]
+  city = text[7][:3] + "-" + text[7][3:]
+  dep_time = text[13][:2]+"."+text[13][2:]
+  arr_time = text[14][:2]+"."+text[14][2:]
+  output = datetime + " | " + city + " | " + dep_time + "-" + arr_time + "\n"
+  return output
+  
+def handle_confirmation_garuda(text):
+  split = text.split("\n")
+  # print(split)
+  split = [i for i in split if "RTSVC" not in i]
+  split = [i for i in split if len(i) != 0]
+
+  output = ""
+  pnr = ""
+  count=1
+  flag=0
+  for idx, item in enumerate(split):
+    if idx == 0:
+      pnr = item
+      # print("this is pnr: " + pnr + "\n")
+    elif "." in item:
+      names = item.strip().split(".")
+      # print(names)
+      for name in names:
+        new_name = remove_numeric_amd(name)
+        if len(new_name) != 0:
+          output += str(count) + ". " + handle_name_amd(new_name) + "\n"
+          # print(output)
+          count+=1
+    else:
+      if flag == 0:
+        output += "\n*By ___ Airlines*\n"
+        flag = 1
+      index = item.strip().split(" ")
+      print(index)
+      output += clean_schedule_garuda(index)          
+  
+  return output
+### END OF GARUDA LOGIC ###
 
 def main_amd(text):
   if(is_confirmation_amd(text)):
@@ -754,7 +802,7 @@ def main_sq(text):
     return parse_penawaran_1(text)
 
 def main_garuda(text):
-  return "*****Still on Development*****\n.\n.\n.\n.\n.\n.\n.\n.\n*****Still on Development*****"
+  return handle_confirmation_garuda(text)
 
 class Form1(Form1Template):
   def __init__(self, **properties):
