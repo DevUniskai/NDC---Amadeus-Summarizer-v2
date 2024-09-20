@@ -804,6 +804,9 @@ def main_sq(text):
 def main_garuda(text):
   return handle_confirmation_garuda(text)
 
+def main_lionair(text):
+  return "***Still on Development***"
+
 class Form1(Form1Template):
   def __init__(self, **properties):
     # Set Form properties and Data Bindings.
@@ -837,6 +840,9 @@ class Form1(Form1Template):
 
       if airline == "Garuda":
         summary = main_garuda(self.text_area.text)
+
+      if airline == "Lion Air":
+        summary = main_lionair(self.text_area.text)
       
       if summary:
         self.btn_copy.visible = True
