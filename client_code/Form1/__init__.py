@@ -773,7 +773,7 @@ def handle_confirmation_garuda(text):
           count+=1
     else:
       if flag == 0:
-        output += "\n*By ___ Airlines*\n"
+        output += "\n*By Garuda Airlines*\n"
         flag = 1
       index = item.strip().split(" ")
       if '3' not in index[11]:
@@ -839,7 +839,73 @@ def parse_konfirmasi_citilink(text):
       output_text += full_itinerary
     
   return output_text
-### END OF LION AIR LOGIC###
+### END OF CITILINK LOGIC###
+
+### LION AIR LOGIC ###
+def parse_konfirmasi_lionair(text):
+  print("\nResult Konfirmasi\n")
+  lines = text.strip().split('\n')
+  pass_idx = get_index(lines, "Passenger Details") + 2
+
+  output_text = ""
+
+  for i in lines[pass_idx:]:
+    if ("Itinerary Details" in i):
+      break
+    split_data = i.split("\t")
+    # print(split_data)
+    no_urut = split_data[0]
+    # print(split_data)
+    pass_name = no_urut + " " + split_data[1]
+    if(no_urut.isnumeric()):
+      output_text += str(pass_name) + "\n"
+      # print(pass_name)
+    else:
+      output_text += pass_name + "\n"
+      # print(pass_name)
+
+  output_text += "\n*By __ Airlines*\n"
+
+  itin_idx = get_index(lines, "Itinerary Details") + 4
+  pattern = r"\((.*?)\)"
+  date_pattern = r", \d{2} \w{3}"
+  time_pattern = r"\d{2}:\d{2}"
+  
+  while itin_idx < len(lines):
+    # Check if we've reached the end of itinerary details
+    # if "Confirmed" in lines[itin_idx]:
+    #   break
+        
+    # Extract departure and arrival places
+    dep_place = re.findall(pattern, lines[itin_idx])
+    arr_place = re.findall(pattern, lines[itin_idx + 2])
+
+    if not dep_place or not arr_place:
+      break  # If no more places are found, exit the loop
+
+    itinerary = dep_place[0] + "-" + arr_place[0]
+        
+    # Extract date
+    date_match = re.findall(date_pattern, lines[itin_idx + 1])
+    date = date_match[0][2:] if date_match else ""
+
+    # Extract departure and arrival times
+    dep_time = re.findall(time_pattern, lines[itin_idx + 1])
+    arr_time = re.findall(time_pattern, lines[itin_idx + 3])
+    if not dep_time or not arr_time:
+      break  # If no times are found, exit the loop
+        
+    time = dep_time[0] + "-" + arr_time[0]
+        
+    # Append to output_text
+    output_text += date + " | " + itinerary + " | " + time + "\n"
+        
+        
+    # Move to the next flight segment
+    itin_idx += 4
+
+  return output_text
+### END OF LION AIR LOGIC ###
 
 def main_amd(text):
   if(is_confirmation_amd(text)):
@@ -865,6 +931,9 @@ def main_garuda(text):
 def main_citilink(text):
   return parse_konfirmasi_citilink(text)
 
+def main_lionair(text):
+  return parse_konfirmasi_lionair(text)
+  
 class Form1(Form1Template):
   def __init__(self, **properties):
     # Set Form properties and Data Bindings.
@@ -896,12 +965,15 @@ class Form1(Form1Template):
       if airline == "AMADEUS":
         summary = main_amd(self.text_area.text)
 
-      if airline == "Garuda":
+      if airline == "GARUDA":
         summary = main_garuda(self.text_area.text)
 
       if airline == "CITILINK":
         summary = main_citilink(self.text_area.text)
-      
+
+      if airline == "Lion Air":
+        summary = main_lionair(self.text_area.text)
+        
       if summary:
         self.btn_copy.visible = True
         self.result.visible = True
