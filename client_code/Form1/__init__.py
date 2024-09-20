@@ -783,6 +783,64 @@ def handle_confirmation_garuda(text):
   return output
 ### END OF GARUDA LOGIC ###
 
+### CITILINK ###
+def parse_konfirmasi_citilink(text):
+  print("\nResult Konfirmasi\n")
+  lines = text.strip().split('\n')
+  pass_idx = get_index(lines, "Penumpang & Daftar kursi") + 2
+  
+  output_text = ""
+  num = 1
+
+  # Get Passenger Data
+  for i in lines[pass_idx:]:
+    if ("Berangkat" in i):
+      break
+    split_data = i.split("\t")
+    # print(split_data)
+    pass_name = str(num) + ". " + split_data[0]
+    output_text += pass_name + "\n"
+    num += 1
+    
+  # Get Itin
+  itin_idx = get_index(lines, "Berangkat") + 1
+  # print(lines[itin_idx:])
+
+  # Extract date
+  date_pattern = r"\d{2} \w{3} \d{2}"
+  
+  # Convert the list slice to a string before using it in re.search
+  date_match = re.search(date_pattern, ' '.join(lines[itin_idx:])) 
+  date = date_match.group(0) if date_match else ""
+    
+  # Extract airport codes
+  place_pattern = r"\((.*?)\)"
+  
+  # Convert the list slice to a string before using it in re.findall
+  places = re.findall(place_pattern, ' '.join(lines[itin_idx:])) 
+  itinerary = places[0] + "-" + places[2] if len(places) >= 2 else ""
+    
+  # Extract time
+  time_pattern = r"Jam (\d{2}.\d{2})"
+  
+  # Convert the list slice to a string before using it in re.findall
+  times = re.findall(time_pattern, ' '.join(lines[itin_idx:]))
+  if len(times) >= 2:
+      time_info = times[0] + "-" + times[1]
+  else:
+      time_info = ""
+  
+  output_text += "\n*By Citilink Airlines*\n"
+
+  # Combine all information
+  if date and itinerary and time_info:
+      full_itinerary = f"{date} | {itinerary} | {time_info}"
+      print("Itinerary:", full_itinerary)
+      output_text += full_itinerary
+    
+  return output_text
+### END OF LION AIR LOGIC###
+
 def main_amd(text):
   if(is_confirmation_amd(text)):
     return handle_confirmation_amd(text)
@@ -804,8 +862,8 @@ def main_sq(text):
 def main_garuda(text):
   return handle_confirmation_garuda(text)
 
-def main_lionair(text):
-  return "***Still on Development***"
+def main_citilink(text):
+  return parse_konfirmasi_citilink(text)
 
 class Form1(Form1Template):
   def __init__(self, **properties):
@@ -841,8 +899,8 @@ class Form1(Form1Template):
       if airline == "Garuda":
         summary = main_garuda(self.text_area.text)
 
-      if airline == "Lion Air":
-        summary = main_lionair(self.text_area.text)
+      if airline == "CITILINK":
+        summary = main_citilink(self.text_area.text)
       
       if summary:
         self.btn_copy.visible = True

@@ -30,7 +30,7 @@ components:
         name: airline
         properties:
           include_placeholder: false
-          items: [SQ, Air Asia, AMADEUS, Garuda, Lion Air]
+          items: [SQ, Air Asia, AMADEUS, Garuda, CITILINK]
           visible: true
         type: DropDown
       layout_properties: {grid_position: 'YDCSOW,QZYLWT'}
