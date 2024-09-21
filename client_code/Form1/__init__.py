@@ -864,7 +864,7 @@ def parse_konfirmasi_lionair(text):
       output_text += pass_name + "\n"
       # print(pass_name)
 
-  output_text += "\n*By __ Airlines*\n"
+  output_text += "\n*By Lion Air*\n"
 
   itin_idx = get_index(lines, "Itinerary Details") + 4
   pattern = r"\((.*?)\)"
@@ -899,7 +899,6 @@ def parse_konfirmasi_lionair(text):
         
     # Append to output_text
     output_text += date + " | " + itinerary + " | " + time + "\n"
-        
         
     # Move to the next flight segment
     itin_idx += 4
