@@ -528,7 +528,7 @@ def parse_konfirmasi_1(input_text):
 
   for data in flightData:
     flight = {}
-    data = data.split(" ")
+    data = data.split()
     flight['departure_airport_code'] = data[0]
     flight['arrival_airport_code'] = data[1]
     flight['departure_date'] = data[2] + " " + data[3] + " " + data[4]
