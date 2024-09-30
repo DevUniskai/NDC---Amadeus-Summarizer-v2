@@ -73,7 +73,7 @@ def parse_penawaran_1(input_text):
     # print("looping")
     flight = {}
 
-    if len(lines) - i >= 12:
+    if len(lines) - i >= 11:
       flight['departure_date'] = lines[i]
       flight['arrival_date'] = lines[i+1]
       flight['departure_time'] = lines[i + 2]
@@ -97,10 +97,10 @@ def parse_penawaran_1(input_text):
       
       flights.append(flight)
       
-      if i+13 <= len(lines) and "layover" in lines[i+12].lower():
-        i += 13
+      if i+12 <= len(lines) and "layover" in lines[i+11].lower():
+        i += 12
       else:
-        i += 12 
+        i += 11
     else:
       break
   
