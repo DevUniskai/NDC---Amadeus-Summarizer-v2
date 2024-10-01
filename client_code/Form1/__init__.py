@@ -21,6 +21,15 @@ def diff_day(date1, date2):
   # print("Difference in days:", difference_in_days)
   return difference_in_days
 
+def parse_flight_schedule(input_text):
+    lines = input_text.strip().split('\n')
+    if "Layover" in input_text:
+        # Use the first function if "layover" is detected
+        return parse_penawaran_1(input_text)
+    elif "Non-stop" in lines:
+        # Use the second function if "no stop" is detected
+        return parse_penawaran_tes(input_text)
+
 def parse_penawaran(input_text):
   print("\n Result Penawaran\n\n")
   lines = input_text.strip().split('\n')
@@ -922,7 +931,7 @@ def main_sq(text):
   if is_konfirmasi_new(text):
     return parse_konfirmasi_1(text)
   else:
-    return parse_penawaran_1(text)
+    return parse_flight_schedule(text)
 
 def main_garuda(text):
   return handle_confirmation_garuda(text)
