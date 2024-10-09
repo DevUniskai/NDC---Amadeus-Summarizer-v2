@@ -754,8 +754,10 @@ def clean_schedule_garuda(text):
   datetime = text[5]
   city = text[7][:3] + "-" + text[7][3:]
   dep_time = text[13][:2]+"."+text[13][2:]
-  arr_time = text[14][:2]+"."+text[14][2:]
-  output = datetime + " | " + city + " | " + dep_time + "-" + arr_time + "\n"
+  arr_time = text[14][:2]+"."+text[14][2:]  
+  flight_number = text[2] + text[3]
+  # print(flight_number)
+  output = datetime + " | " + city + " | " + dep_time + "-" + arr_time + " | " + flight_number + "\n"
   return output
   
 def handle_confirmation_garuda(text):
