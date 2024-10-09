@@ -840,12 +840,19 @@ def parse_konfirmasi_citilink(text):
       time_info = times[0] + "-" + times[1]
   else:
       time_info = ""
+
+  
+  # Extract flight number
+  flight_number_pattern = r"Penerbangan\s+([A-Z]+\s*\d+)"
+  flight_match = re.search(flight_number_pattern, ' '.join(lines[itin_idx:]))
+  # print(flight_match)
+  flight_number = flight_match.group(1).replace(" ", "") if flight_match else ""
   
   output_text += "\n*By Citilink Airlines*\n"
 
   # Combine all information
   if date and itinerary and time_info:
-      full_itinerary = f"{date} | {itinerary} | {time_info}"
+      full_itinerary = f"{date} | {itinerary} | {time_info} | {flight_number}"
       print("Itinerary:", full_itinerary)
       output_text += full_itinerary
     
