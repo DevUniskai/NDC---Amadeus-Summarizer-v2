@@ -873,7 +873,7 @@ def parse_konfirmasi_lionair(text):
       output_text += pass_name + "\n"
       # print(pass_name)
 
-  output_text += "\n*By Lion Air*\n"
+  output_text += "\n*By ___ Air*\n"
 
   itin_idx = get_index(lines, "Itinerary Details") + 4
   pattern = r"\((.*?)\)"
