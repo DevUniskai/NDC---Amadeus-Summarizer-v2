@@ -860,76 +860,9 @@ def parse_konfirmasi_citilink(text):
 ### END OF CITILINK LOGIC###
 
 ### LION AIR LOGIC ###
-def parse_konfirmasi_lionair(text):
-  print("\nResult Konfirmasi\n")
-  lines = text.strip().split('\n')
-  pass_idx = get_index(lines, "Passenger Details") + 2
-
-  output_text = ""
-
-  for i in lines[pass_idx:]:
-    if ("Itinerary Details" in i):
-      break
-    split_data = i.split("\t")
-    # print(split_data)
-    no_urut = split_data[0]
-    # print(split_data)
-    pass_name = no_urut + " " + split_data[1]
-    if(no_urut.isnumeric()):
-      output_text += str(pass_name) + "\n"
-      # print(pass_name)
-    else:
-      output_text += pass_name + "\n"
-      # print(pass_name)
-
-  output_text += "\n*By ___ Air*\n"
-
-  itin_idx = get_index(lines, "Itinerary Details") + 4
-  pattern = r"\((.*?)\)"
-  date_pattern = r", \d{2} \w{3}"
-  time_pattern = r"\d{2}:\d{2}"
-  
-  while itin_idx < len(lines):
-    # Check if we've reached the end of itinerary details
-    # if "Confirmed" in lines[itin_idx]:
-    #   break
-        
-    # Extract departure and arrival places
-    dep_place = re.findall(pattern, lines[itin_idx])
-    arr_place = re.findall(pattern, lines[itin_idx + 2])
-
-    if not dep_place or not arr_place:
-      break  # If no more places are found, exit the loop
-
-    itinerary = dep_place[0] + "-" + arr_place[0]
-        
-    # Extract date
-    date_match = re.findall(date_pattern, lines[itin_idx + 1])
-    date = date_match[0][2:] if date_match else ""
-
-    # Extract departure and arrival times
-    dep_time = re.findall(time_pattern, lines[itin_idx + 1])
-    arr_time = re.findall(time_pattern, lines[itin_idx + 3])
-    if not dep_time or not arr_time:
-      break  # If no times are found, exit the loop
-        
-    time = dep_time[0] + "-" + arr_time[0]
-        
-    # Append to output_text
-    output_text += date + " | " + itinerary + " | " + time + "\n"
-        
-    # Move to the next flight segment
-    itin_idx += 4
-
-  return output_text
-
-def parse_konfirmasi_lionair_1(text):
-    lines = text.strip().split('\n')
+def parse_passenger_details(lines):
     pass_idx = get_index(lines, "Passenger Details") + 2
-
     output_text = ""
-
-    # Process passenger names
     for i in lines[pass_idx:]:
         if "Itinerary Details" in i:
             break
@@ -945,9 +878,9 @@ def parse_konfirmasi_lionair_1(text):
             no_urut = ''
         pass_name = no_urut + " " + name
         output_text += pass_name + "\n"
+    return output_text.strip()
 
-    # Now process itineraries
-    itin_start_idx = get_index(lines, "Itinerary Details") + 2  # Adjusted index
+def parse_itinerary(lines, itin_start_idx):
     itineraries_lines = lines[itin_start_idx:]
 
     # Split itineraries into segments
@@ -967,8 +900,9 @@ def parse_konfirmasi_lionair_1(text):
     if current_segment:
         flight_segments.append(current_segment)
 
-    pattern = r"\((.*?)\)"
-    date_pattern = r", (\d{2}) (\w{3})"
+    # Patterns for extracting information
+    airport_pattern = r"\(([A-Z]{3})\)"
+    date_pattern = r", ?(\d{1,2}) ?(\w{3})"
     time_pattern = r"(\d{2}:\d{2})"
 
     airline_list = []
@@ -976,6 +910,16 @@ def parse_konfirmasi_lionair_1(text):
 
     for segment in flight_segments:
         segment_idx = 0
+        airline_name = ""
+        flight_number = ""
+        dep_place = ""
+        dep_time = ""
+        dep_date = ""
+        arr_place = ""
+        arr_time = ""
+        arr_date = ""
+
+        # Extract airline name and flight number
         flight_line = segment[segment_idx].strip()
         segment_idx += 1
         match = re.match(r'^(.*?)\s*([A-Za-z]{2}\d+)$', flight_line)
@@ -983,73 +927,137 @@ def parse_konfirmasi_lionair_1(text):
             airline_name = match.group(1).strip()
             flight_number = match.group(2).strip()
         else:
-            continue
+            # Handle cases like "Batik AirID7021"
+            match = re.match(r'^(.*? Air)([A-Za-z]{2}\d+)', flight_line)
+            if match:
+                airline_name = match.group(1).strip()
+                flight_number = match.group(2).strip()
+            else:
+                continue  # Unable to parse flight line
 
         if airline_name not in airline_list:
             airline_list.append(airline_name)
 
-        # Check if next line is aircraft type
+        # Skip aircraft type line if present
         if segment_idx < len(segment):
             next_line = segment[segment_idx].strip()
-            if not re.search(r'\(.*\)', next_line) and not re.search(r'\d{2}:\d{2}', next_line):
+            if not re.search(airport_pattern, next_line) and not re.search(time_pattern, next_line):
                 # Assume it's aircraft type and skip it
                 segment_idx += 1
 
-        # Now, dep_line should be the departure airport
-        if segment_idx >= len(segment):
-            continue
-        dep_line = segment[segment_idx].strip()
-        dep_place_match = re.findall(pattern, dep_line)
-        segment_idx += 1
+        # Extract dep_place and dep_time
+        dep_place_found = False
+        prev_line = ""  # Keep track of the previous line
+        while segment_idx < len(segment):
+            line = segment[segment_idx].strip()
+            dep_place_match = re.findall(airport_pattern, line)
+            dep_time_match = re.search(time_pattern, line)
+            dep_date_match = re.search(date_pattern, line)
+            
+            if dep_place_match and not dep_place_found:
+                dep_place = dep_place_match[0]  # Extract only the first match for departure place
+                dep_place_found = True  # Mark dep_place as found to avoid overwriting it
+                # print("Departure Place: ", dep_place)
+            if dep_time_match:
+                dep_time = dep_time_match.group(1)
+            if dep_date_match:
+                dep_date = dep_date_match.group(1) + " " + dep_date_match.group(2)
 
-        # Extract departure time and date, arrival airport
-        if segment_idx >= len(segment):
-            continue
-        dep_time_line = segment[segment_idx].strip()
-        dep_time_match = re.findall(time_pattern, dep_time_line)
-        date_match = re.findall(date_pattern, dep_time_line)
+            # Store the previous line before moving to the next line
+            prev_line = line
 
-        # **Updated Extraction of Arrival Place**
-        # Split dep_time_line to isolate the arrival place
-        dep_time_parts = dep_time_line.split('\t')
-        if len(dep_time_parts) > 1:
-            arr_place_line = dep_time_parts[1]
-            arr_place_match = re.findall(pattern, arr_place_line)
+            # If all departure details are found, proceed to next
+            if dep_place and dep_time and dep_date:
+                segment_idx += 1
+                break
+            segment_idx += 1
+
+        # Extract arr_place, arr_time, and arr_date
+        arr_place_found = False
+        while segment_idx < len(segment):
+            line = segment[segment_idx].strip()
+            # print(line)
+
+            arr_place_match = re.findall(airport_pattern, line)
+            # print("arr_place_match: ", arr_place_match)
+            arr_time_match = re.search(time_pattern, line)
+            arr_date_match = re.search(date_pattern, line)
+
+            if arr_place_match and not arr_place_found:
+              arr_place = arr_place_match[0]
+              arr_place_found = True
+              # print("Arrival Place: ", arr_place)
+            # If the current line does not contain an airport pattern, check the previous line for arrival place
+            elif not arr_place_match and prev_line:
+                prev_place_match = re.findall(airport_pattern, prev_line)
+                if prev_place_match:
+                    arr_place = prev_place_match[-1]  # Use the last match for arrival place
+                    arr_place_found = True
+                    # print("Arrival Place (from previous line): ", arr_place)
+
+            # Handle arrival time and date on the current line
+            if arr_time_match:
+                arr_time = arr_time_match.group(1)
+            if arr_date_match:
+                arr_date = arr_date_match.group(1) + " " + arr_date_match.group(2)
+
+            # If all arrival details are found, proceed
+            if arr_place and arr_time and arr_date:
+                segment_idx += 1
+                break
+            segment_idx += 1
+
+        # Output the segment data
+        # print(f"Segment Data:")
+        # print(f"  Airline: {airline_name}")
+        # print(f"  Flight Number: {flight_number}")
+        # print(f"  Dep Place: {dep_place}")
+        # print(f"  Dep Time: {dep_time}")
+        # print(f"  Dep Date: {dep_date}")
+        # print(f"  Arr Place: {arr_place}")
+        # print(f"  Arr Time: {arr_time}")
+        # print(f"  Arr Date: {arr_date}")
+        # print("---")
+
+        # After processing all lines, check if all data was found
+        if dep_place and dep_time and arr_place and arr_time and dep_date:
+            itinerary = dep_place + "-" + arr_place
+            date = dep_date
+            time = dep_time + "-" + arr_time
+            flight_info = date + " | " + itinerary + " | " + time + " | " + flight_number
+            itineraries.append(flight_info)
         else:
-            arr_place_match = []
-        segment_idx += 1
-
-        # Extract arrival time and date, duration, class
-        if segment_idx >= len(segment):
-            continue
-        arr_time_line = segment[segment_idx].strip()
-        arr_time_match = re.findall(time_pattern, arr_time_line)
-        segment_idx += 1
-
-        # Check if all required data was found
-        if not (dep_place_match and arr_place_match and dep_time_match and arr_time_match and date_match):
-            continue
-
-        # Build the itinerary string
-        dep_place = dep_place_match[0]
-        arr_place = arr_place_match[0]
-        itinerary = dep_place + "-" + arr_place
-        date = date_match[0][0] + date_match[0][1].upper()
-        time = dep_time_match[0].replace(':', '.') + "-" + arr_time_match[0].replace(':', '.')
-        flight_info = date + " | " + itinerary + " | " + time + " | " + flight_number
-
-        itineraries.append(flight_info)
+            continue  # Missing data, skip this segment
 
     # Now build the output
-    output_text = output_text.strip()
-    output_text += "\n\nBy " + ", ".join(airline_list) + "\n"
+    if not itineraries:
+        return "No itinerary details found."
+    output_text = "*By " + ", ".join(airline_list) + "*\n"
 
     for itin in itineraries:
         output_text += itin + "\n"
 
-    # print("\nResult Konfirmasi\n")
-    # print(output_text)
+    return output_text.strip()
+
+def parse_konfirmasi_lionair(text):
+    lines = text.strip().split('\n')
+    output_text = ""
+
+    # Process passenger details
+    passenger_details = parse_passenger_details(lines)
+    output_text += passenger_details + "\n\n"
+
+    # Determine the starting index of itinerary details
+    itin_start_idx = get_index(lines, "Itinerary Details") + 2
+
+    # Parse the itinerary details
+    itineraries_output = parse_itinerary(lines, itin_start_idx)
+    output_text += itineraries_output
+
+    print("\nResult Konfirmasi\n")
+    print(output_text)
     return output_text
+
 ### END OF LION AIR LOGIC ###
 
 def main_amd(text):
@@ -1077,7 +1085,7 @@ def main_citilink(text):
   return parse_konfirmasi_citilink(text)
 
 def main_lionair(text):
-  return parse_konfirmasi_lionair_1(text)
+  return parse_konfirmasi_lionair(text)
   
 class Form1(Form1Template):
   def __init__(self, **properties):
