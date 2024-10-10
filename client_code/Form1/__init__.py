@@ -882,7 +882,7 @@ def parse_passenger_details(lines):
 
 def parse_itinerary(lines, itin_start_idx):
     itineraries_lines = lines[itin_start_idx:]
-
+  
     # Split itineraries into segments
     flight_segments = []
     current_segment = []
@@ -942,12 +942,12 @@ def parse_itinerary(lines, itin_start_idx):
         if segment_idx < len(segment):
             next_line = segment[segment_idx].strip()
             if not re.search(airport_pattern, next_line) and not re.search(time_pattern, next_line):
-                # Assume it's aircraft type and skip it
                 segment_idx += 1
 
         # Extract dep_place and dep_time
         dep_place_found = False
-        prev_line = ""  # Keep track of the previous line
+        prev_line = "" 
+      
         while segment_idx < len(segment):
             line = segment[segment_idx].strip()
             dep_place_match = re.findall(airport_pattern, line)
@@ -1007,18 +1007,6 @@ def parse_itinerary(lines, itin_start_idx):
                 break
             segment_idx += 1
 
-        # Output the segment data
-        # print(f"Segment Data:")
-        # print(f"  Airline: {airline_name}")
-        # print(f"  Flight Number: {flight_number}")
-        # print(f"  Dep Place: {dep_place}")
-        # print(f"  Dep Time: {dep_time}")
-        # print(f"  Dep Date: {dep_date}")
-        # print(f"  Arr Place: {arr_place}")
-        # print(f"  Arr Time: {arr_time}")
-        # print(f"  Arr Date: {arr_date}")
-        # print("---")
-
         # After processing all lines, check if all data was found
         if dep_place and dep_time and arr_place and arr_time and dep_date:
             itinerary = dep_place + "-" + arr_place
@@ -1027,9 +1015,8 @@ def parse_itinerary(lines, itin_start_idx):
             flight_info = date + " | " + itinerary + " | " + time + " | " + flight_number
             itineraries.append(flight_info)
         else:
-            continue  # Missing data, skip this segment
+            continue 
 
-    # Now build the output
     if not itineraries:
         return "No itinerary details found."
     output_text = "*By " + ", ".join(airline_list) + "*\n"
