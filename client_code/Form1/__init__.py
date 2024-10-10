@@ -669,12 +669,13 @@ def is_confirmation_amd(text):
     return False
 
 def clean_schedule_amd(text):
+  flight_code = text[2] + text[3]
   datetime = text[5]
   city = text[6][2:]
   city = city[:3] + "-" + city[3:]
   dep_time = text[9][:2]+"."+text[9][2:]
   arr_time = text[10][:2]+"."+text[10][2:]
-  output = datetime + " | " + city + " | " + dep_time + "-" + arr_time + "\n"
+  output = datetime + " | " + city + " | " + dep_time + "-" + arr_time + " | " + flight_code + "\n"
   return output
 
 def remove_numeric_amd(text):
@@ -741,8 +742,16 @@ def handle_confirmation_amd(text):
       if flag == 0:
         output += "\n*By ___ Airlines*\n"
         flag = 1
+        
       index = item.strip().split(" ")
       # print(index)
+      
+      # if code and number are gabung
+      if len(index[2]) > 2:
+        flight_code = index[2][:2] 
+        flight_number = index[2][2:]  
+        index = index[:2] + [flight_code, flight_number] + index[3:] 
+      
       output += clean_schedule_amd(index)          
   
   return output
