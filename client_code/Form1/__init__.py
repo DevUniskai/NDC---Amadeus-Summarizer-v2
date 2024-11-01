@@ -796,7 +796,7 @@ def handle_confirmation_garuda(text):
         output += "\n*By Garuda Airlines*\n"
         flag = 1
       index = item.strip().split(" ")
-      if '3' not in index[11]:
+      if len(index[11]) != 1:
         del index[13]
       output += clean_schedule_garuda(index)          
   
@@ -808,63 +808,78 @@ def parse_konfirmasi_citilink(text):
   print("\nResult Konfirmasi\n")
   lines = text.strip().split('\n')
   pass_idx = get_index(lines, "Penumpang & Daftar kursi") + 2
-  
+
   output_text = ""
   num = 1
 
+  # General regular expression to match any prefix consisting of uppercase letters followed by a space
+  prefix_pattern = re.compile(r"^(MR|MS|MRS|MISS|DR|CAPT|PROF)\b", re.IGNORECASE)
+
   # Get Passenger Data
-  for i in lines[pass_idx:]:
-    if ("Berangkat" in i):
+  for index in range(pass_idx, len(lines)):
+    line = lines[index].strip()
+
+    # Check if the line is part of the "Berangkat" section and break
+    if "Berangkat" in line:
       break
-    split_data = i.split("\t")
-    # print(split_data)
-    pass_name = str(num) + ". " + split_data[0]
-    output_text += pass_name + "\n"
-    num += 1
-    
+
+    # Split the line on tabs and check if the line matches the prefix pattern
+    split_data = line.split("\t")
+    if len(split_data) > 0 and prefix_pattern.match(split_data[0].strip()):
+      pass_name = str(num) + ". " + split_data[0].strip()
+      output_text += pass_name + "\n"
+      num += 1  
+
   # Get Itin
-  itin_idx = get_index(lines, "Berangkat") + 1
+  itin_idx = get_index(lines, "Berangkat") + 2
   # print(lines[itin_idx:])
 
-  # Extract date
-  date_pattern = r"\d{2} \w{3} \d{2}"
-  
-  # Convert the list slice to a string before using it in re.search
-  date_match = re.search(date_pattern, ' '.join(lines[itin_idx:])) 
-  date = date_match.group(0) if date_match else ""
-    
-  # Extract airport codes
-  place_pattern = r"\((.*?)\)"
-  
-  # Convert the list slice to a string before using it in re.findall
-  places = re.findall(place_pattern, ' '.join(lines[itin_idx:])) 
-  itinerary = places[0] + "-" + places[2] if len(places) >= 2 else ""
-    
-  # Extract time
-  time_pattern = r"Jam (\d{2}.\d{2})"
-  
-  # Convert the list slice to a string before using it in re.findall
-  times = re.findall(time_pattern, ' '.join(lines[itin_idx:]))
-  if len(times) >= 2:
-      time_info = times[0] + "-" + times[1]
-  else:
-      time_info = ""
-
-  
-  # Extract flight number
-  flight_number_pattern = r"Penerbangan\s+([A-Z]+\s*\d+)"
-  flight_match = re.search(flight_number_pattern, ' '.join(lines[itin_idx:]))
-  # print(flight_match)
-  flight_number = flight_match.group(1).replace(" ", "") if flight_match else ""
-  
   output_text += "\n*By Citilink Airlines*\n"
 
-  # Combine all information
-  if date and itinerary and time_info:
-      full_itinerary = f"{date} | {itinerary} | {time_info} | {flight_number}"
-      print("Itinerary:", full_itinerary)
-      output_text += full_itinerary
+  while itin_idx < len(lines):
+    # Extract date
+    date_pattern = r"\d{2} \w{3} \d{2}"
+
+    # Convert the list slice to a string before using it in re.search
+    date_match = re.search(date_pattern, ' '.join(lines[itin_idx:]))
+    date = date_match.group(0) if date_match else ""
+
+    # Extract airport codes
+    place_pattern = r"\b([A-Z]{3})\b"
+
+    # Convert the list slice to a string before using it in re.findall
+    places = re.findall(place_pattern, ' '.join(lines[itin_idx:]))
+    print(places)
+    # if len(places) < 2:
+    #   itin_idx += 5  # Skip to the next iteration if not enough codes are found
+    #   continue
+
+    itinerary = places[0] + "-" + places[1] if len(places) >= 1 else ""
+  
+    # Extract time
+    time_pattern = r"Jam (\d{2}.\d{2})"
+
+    # Convert the list slice to a string before using it in re.findall
+    times = re.findall(time_pattern, ' '.join(lines[itin_idx:]))
+    if len(times) >= 2:
+        time_info = times[0] + "-" + times[1]
+    else:
+        time_info = ""
+
+    # Extract flight number
+    flight_number_pattern = r"Penerbangan\s+([A-Z]+\s*\d+)"
+    flight_match = re.search(flight_number_pattern, ' '.join(lines[itin_idx:]))
+    # print(flight_match)
+    flight_number = flight_match.group(1).replace(" ", "") if flight_match else ""
+
+    # Combine all information
+    if date and itinerary and time_info:
+        full_itinerary = f"{date} | {itinerary} | {time_info} | {flight_number}\n"
+        # print("Itinerary:", full_itinerary)
+        output_text += full_itinerary
     
+    itin_idx += 5
+
   return output_text
 ### END OF CITILINK LOGIC###
 
