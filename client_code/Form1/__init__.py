@@ -857,7 +857,7 @@ def parse_konfirmasi_citilink(text):
     itinerary = places[0] + "-" + places[1] if len(places) >= 1 else ""
   
     # Extract time
-    time_pattern = r"Jam (\d{2}.\d{2})"
+    time_pattern = r"Jam (\d{1,2}\.\d{2})"
 
     # Convert the list slice to a string before using it in re.findall
     times = re.findall(time_pattern, ' '.join(lines[itin_idx:]))
