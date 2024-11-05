@@ -796,6 +796,13 @@ def handle_confirmation_garuda(text):
         output += "\n*By Garuda Airlines*\n"
         flag = 1
       index = item.strip().split(" ")
+      
+      # if code and number are gabung
+      if len(index[2]) > 2:
+        flight_code = index[2][:2] 
+        flight_number = index[2][2:]  
+        index = index[:2] + [flight_code, flight_number] + index[3:] 
+        
       if len(index[11]) != 1:
         del index[13]
       output += clean_schedule_garuda(index)          
