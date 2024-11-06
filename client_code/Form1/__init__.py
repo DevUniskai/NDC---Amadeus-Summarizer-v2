@@ -844,8 +844,8 @@ def parse_konfirmasi_citilink(text):
   output_text += "\n*By Citilink Airlines*\n"
 
   while itin_idx < len(lines):
-    # Extract date
-    date_pattern = r"\d{2} \w{3} \d{2}"
+    # Extract date no year (if with year tambahin  \d{2})
+    date_pattern = r"\d{2} \w{3}"
 
     # Convert the list slice to a string before using it in re.search
     date_match = re.search(date_pattern, ' '.join(lines[itin_idx:]))
