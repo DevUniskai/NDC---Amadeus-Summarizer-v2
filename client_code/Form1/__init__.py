@@ -1078,6 +1078,11 @@ def parse_konfirmasi_lionair(text):
 
 ### END OF LION AIR LOGIC ###
 
+### JETSTAR LOGIC ###
+def parse_jetstar(text):
+  return "On Progress"
+  
+### END OF JETSTAR LOGIC ###
 def main_amd(text):
   if(is_confirmation_amd(text)):
     return handle_confirmation_amd(text)
@@ -1104,7 +1109,10 @@ def main_citilink(text):
 
 def main_lionair(text):
   return parse_konfirmasi_lionair(text)
-  
+
+def main_jetstar(text):
+  return parse_jetstar(text)
+
 class Form1(Form1Template):
   def __init__(self, **properties):
     # Set Form properties and Data Bindings.
@@ -1144,6 +1152,9 @@ class Form1(Form1Template):
 
       if airline == "Lion Air":
         summary = main_lionair(self.text_area.text)
+
+      if airline == "Jetstar":
+        summary = main_jetstar(self.text_area.text)
         
       if summary:
         self.btn_copy.visible = True
