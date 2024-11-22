@@ -1105,7 +1105,7 @@ def parse_jetstar(text):
   while itin_idx < len(lines):
     flight_code_pattern = r"(\d+[A-Z] \d+)"
     flight_number_match = re.search(flight_code_pattern, lines[itin_idx])
-    flight_number = flight_number_match.group(1) if flight_number_match else ""
+    flight_number = flight_number_match.group(1).replace(" ", "") if flight_number_match else ""
 
     place_pattern = r"- (.+ to .+)"
     place_match = re.search(place_pattern, lines[itin_idx])
