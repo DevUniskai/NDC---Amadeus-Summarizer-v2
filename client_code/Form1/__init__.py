@@ -1080,7 +1080,50 @@ def parse_konfirmasi_lionair(text):
 
 ### JETSTAR LOGIC ###
 def parse_jetstar(text):
-  return "On Progress"
+  print("\nResult Konfirmasi\n")
+  lines = text.strip().split('\n')
+  pass_idx = get_index(lines, "Penumpang") + 1
+
+  output_text = ""
+  num = 1
+
+  # Get Passenger Data
+  for i in range(pass_idx, len(lines)):
+    if "Rincian Pemesanan" in lines[i]:
+      break
+
+    pass_name = str(num) + ". " + lines[i]
+    output_text += pass_name + "\n"
+    num += 1
+    print(pass_name)
+
+  # Get Itin
+  itin_idx = get_index(lines, "Penerbangan berangkat") + 1
+
+  output_text += "\n*By Jetstar Airlines*\n"
+
+  while itin_idx < len(lines):
+    flight_code_pattern = r"(\d+[A-Z] \d+)"
+    flight_number_match = re.search(flight_code_pattern, lines[itin_idx])
+    flight_number = flight_number_match.group(1) if flight_number_match else ""
+
+    place_pattern = r"- (.+ to .+)"
+    place_match = re.search(place_pattern, lines[itin_idx])
+    places = place_match.group(1).replace(" to ", "-") if place_match else ""
+
+    date_pattern = r"\d{1,2} \w+ \d{4}"
+    date_match = re.search(date_pattern, lines[itin_idx + 1])
+    date = date_match.group(0) if date_match else ""
+
+    time_pattern = r"(\d{1,2}.\d{2}\w{2})"
+    time_match = re.search(time_pattern, lines[itin_idx + 1])
+    time = time_match.group(1) if time_match else ""
+
+    output_text += date + " | " + places + " | " + time + " | " + flight_number + "\n"
+    
+    itin_idx += 2
+
+  return output_text
   
 ### END OF JETSTAR LOGIC ###
 def main_amd(text):
