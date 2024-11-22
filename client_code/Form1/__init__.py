@@ -1118,8 +1118,23 @@ def parse_jetstar(text):
     time_pattern = r"(\d{1,2}.\d{2}\w{2})"
     time_match = re.search(time_pattern, lines[itin_idx + 1])
     time = time_match.group(1) if time_match else ""
+    # Remove 'am'/'pm' and split
+    time_cleaned = time.replace("am", "").replace("pm", "")
+    times = time_cleaned.split('.')
 
-    output_text += date + " | " + places + " | " + time + " | " + flight_number + "\n"
+    # Convert the hour
+    hour = int(times[0])
+    minute = times[1]
+    if "pm" in time:
+        if hour != 12:
+            hour += 12
+    elif "am" in time:
+        if hour == 12:
+            hour = 0
+
+    new_time = f"{hour:02d}.{minute}"
+  
+    output_text += date + " | " + places + " | " + new_time + " | " + flight_number + "\n"
     
     itin_idx += 2
 
