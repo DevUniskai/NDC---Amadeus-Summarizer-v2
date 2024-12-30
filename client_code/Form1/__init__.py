@@ -529,7 +529,7 @@ def parse_konfirmasi_1(input_text):
   print("\n Result Konfirmasi\n\n")
   lines = [line.strip() for line in input_text.splitlines() if line.strip()]
   flightData = [line.replace("\t", " ") for line in lines if re.match(r'([A-Z]{3})\s+([A-Z]{3})\s+(\d{2} [A-Za-z]{3} \d{4} \d{2}:\d{2})\s+(\d{2} [A-Za-z]{3} \d{4} \d{2}:\d{2})\s+(SQ\d{3,4})\s+([A-Z])\s+([A-Z0-9]+)', line)]
-  passengerData = [line for line in lines if "Full Detail" in line]
+  passengerData = [line for line in lines if "View More" in line]
 
   flights = []
   passengers = []
