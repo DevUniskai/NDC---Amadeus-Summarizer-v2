@@ -550,7 +550,13 @@ def parse_konfirmasi_1(input_text):
 
   for data in passengerData:
     data = data.split("\t")
-    passengers.append(f"{data[2] if data[2] != '' else ''} {data[0]} {data[1]}")
+    # passengers.append(f"{data[2] if data[2] != '' else ''} {data[0]} {data[1]}")
+    names = []
+    for name in data:
+      if re.match(r'^\d', name):
+        break
+      names.append(name)
+    passengers.append(" ".join(names))
 
   for i, passenger in enumerate(passengers, 1):
     output_text += f"{i}. {passenger}\n"
