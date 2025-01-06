@@ -529,7 +529,11 @@ def parse_konfirmasi_1(input_text):
   print("\n Result Konfirmasi\n\n")
   lines = [line.strip() for line in input_text.splitlines() if line.strip()]
   flightData = [line.replace("\t", " ") for line in lines if re.match(r'([A-Z]{3})\s+([A-Z]{3})\s+(\d{2} [A-Za-z]{3} \d{4} \d{2}:\d{2})\s+(\d{2} [A-Za-z]{3} \d{4} \d{2}:\d{2})\s+(SQ\d{3,4})\s+([A-Z])\s+([A-Z0-9]+)', line)]
-  passengerData = [line for line in lines if "ADT	SQ" in line]
+  # passengerData = [line for line in lines if "ADT	SQ" in line]
+  passengerData = [
+    lines[i] for i in range(len(lines))
+    if "View More" in lines[i] or (i + 2 < len(lines) and "View More" in lines[i + 2])
+  ]
 
   flights = []
   passengers = []
@@ -553,10 +557,17 @@ def parse_konfirmasi_1(input_text):
     # passengers.append(f"{data[2] if data[2] != '' else ''} {data[0]} {data[1]}")
     names = []
     for name in data:
+      if "Traveller Information" in name:
+        break
+      if "Title" in name:
+        break
       if re.match(r'^\d', name):
         break
-      names.append(name)
-    passengers.append(" ".join(names))
+      if name:
+        names.append(name)
+        
+    if names:
+      passengers.append(" ".join(names))
 
   for i, passenger in enumerate(passengers, 1):
     output_text += f"{i}. {passenger}\n"
