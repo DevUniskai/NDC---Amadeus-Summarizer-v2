@@ -810,7 +810,7 @@ def handle_confirmation_garuda(text):
           count+=1
     else:
       if flag == 0:
-        output += "\n*By Garuda Airlines*\n"
+        output += "\n*By Garuda*\n"
         flag = 1
       index = item.strip().split(" ")
       
@@ -858,7 +858,7 @@ def parse_konfirmasi_citilink(text):
   itin_idx = get_index(lines, "Berangkat") + 2
   # print(lines[itin_idx:])
 
-  output_text += "\n*By Citilink Airlines*\n"
+  output_text += "\n*By Citilink*\n"
 
   while itin_idx < len(lines):
     # Extract date no year (if with year tambahin  \d{2})
