@@ -70,53 +70,59 @@ def parse_penawaran(input_text):
   
   return output_text
 
+def calculate_days_with_time(dep_date, arr_date, dep_time, arr_time):
+    days_diff = diff_day(dep_date, arr_date)
+
+    # Convert times for comparison
+    dep_time_obj = datetime.strptime(dep_time, "%H:%M").time()
+    arr_time_obj = datetime.strptime(arr_time, "%H:%M").time()
+
+    # If arrival time is earlier than departure time, it's an overnight flight (+1 day)
+    if arr_time_obj < dep_time_obj:
+        days_diff += 1
+
+    return days_diff
+
 def parse_penawaran_1(input_text):
-  lines = [line.strip() for line in input_text.splitlines() if line.strip()]
-  # print("halo")
-  flights = []
-  i = 0
+    lines = [line.strip() for line in input_text.splitlines() if line.strip()]
+    flights = []
+    i = 0
+    first_departure_date = None
+    
+    while i < len(lines):
+        flight = {}
 
-  first_departure_date = None
-  
-  while i < len(lines):
-    # print("looping")
-    flight = {}
+        if len(lines) - i >= 11:
+            flight['departure_date'] = lines[i]
+            flight['arrival_date'] = lines[i+1]
+            flight['departure_time'] = lines[i + 2]
+            flight['arrival_time'] = lines[i + 3]
+            flight['departure_airport_code'] = lines[i + 4]
+            flight['arrival_airport_code'] = lines[i + 5]
+            flight['flight_code'] = lines[i + 9]
 
-    if len(lines) - i >= 11:
-      flight['departure_date'] = lines[i]
-      flight['arrival_date'] = lines[i+1]
-      flight['departure_time'] = lines[i + 2]
-      flight['arrival_time'] = lines[i + 3]
-      flight['departure_airport_code'] = lines[i + 4]
-      flight['arrival_airport_code'] = lines[i + 5]
-      flight['flight_code'] = lines[i + 9]
+            if "Layover" not in lines[i-1]:
+                first_departure_date = flight['departure_date']
 
-      # print(flight['arrival_date'])
-      
-      if "Layover" not in lines[i-1]:
-        first_departure_date = flight['departure_date']
-        print("first " + first_departure_date)
+            # Use the new function to handle both date and time
+            days_diff = calculate_days_with_time(flight['departure_date'], flight['arrival_date'], flight['departure_time'], flight['arrival_time'])
 
-      # and i+12 >= len(lines) -> untuk input 2 layover (3 flight) masih keitung days di flight ke-2nya
-      if "Layover" in lines[i-1]:
-        print("last " + flight['arrival_date'])
-        days = diff_day(first_departure_date, flight['arrival_date'])
-        print(days)
-        flight['arrival_time'] += f"(+{days})" if days > 0 else ""
-      
-      flights.append(flight)
-      
-      if i+12 <= len(lines) and "layover" in lines[i+11].lower():
-        i += 12
-      else:
-        i += 11
-    else:
-      break
-  
-  output = "*By Singapore Airlines*\n"
-  for flight in flights:
-      output += f"{flight['departure_date']} | {flight['departure_airport_code']}-{flight['arrival_airport_code']} | {flight['departure_time']}-{flight['arrival_time']} | {flight['flight_code']}\n"
-  return output
+            # Append (+1) if flight arrives the next day
+            flight['arrival_time'] += f"(+{days_diff})" if days_diff > 0 else ""
+
+            flights.append(flight)
+            
+            if i+12 <= len(lines) and "layover" in lines[i+11].lower():
+                i += 12
+            else:
+                i += 11
+        else:
+            break
+
+    output = "*By Singapore Airlines*\n"
+    for flight in flights:
+        output += f"{flight['departure_date']} | {flight['departure_airport_code']}-{flight['arrival_airport_code']} | {flight['departure_time']}-{flight['arrival_time']} | {flight['flight_code']}\n"
+    return output
   
 # format input paling baru (perflight) pake yg ini
 def parse_penawaran_newFormat(input_text):
