@@ -103,7 +103,9 @@ def parse_penawaran_1(input_text):
 
             if "Layover" not in lines[i-1]:
                 first_departure_date = flight['departure_date']
-
+            if "Layover" in lines[i-1]:
+              layover = lines[i-1]         
+              
             # Use the new function to handle both date and time
             days_diff = calculate_days_with_time(flight['departure_time'], flight['arrival_time'])
 
@@ -122,6 +124,7 @@ def parse_penawaran_1(input_text):
     output = "*By Singapore Airlines*\n"
     for flight in flights:
         output += f"{flight['departure_date']} | {flight['departure_airport_code']}-{flight['arrival_airport_code']} | {flight['departure_time']}-{flight['arrival_time']} | {flight['flight_code']}\n"
+    output += f"_{layover}_"
     return output
   
 # format input paling baru (perflight) pake yg ini
