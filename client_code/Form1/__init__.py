@@ -70,8 +70,8 @@ def parse_penawaran(input_text):
   
   return output_text
 
-def calculate_days_with_time(dep_date, arr_date, dep_time, arr_time):
-    days_diff = diff_day(dep_date, arr_date)
+def calculate_days_with_time(dep_time, arr_time):
+    days_diff = 0
 
     # Convert times for comparison
     dep_time_obj = datetime.strptime(dep_time, "%H:%M").time()
@@ -105,7 +105,7 @@ def parse_penawaran_1(input_text):
                 first_departure_date = flight['departure_date']
 
             # Use the new function to handle both date and time
-            days_diff = calculate_days_with_time(flight['departure_date'], flight['arrival_date'], flight['departure_time'], flight['arrival_time'])
+            days_diff = calculate_days_with_time(flight['departure_time'], flight['arrival_time'])
 
             # Append (+1) if flight arrives the next day
             flight['arrival_time'] += f"(+{days_diff})" if days_diff > 0 else ""
