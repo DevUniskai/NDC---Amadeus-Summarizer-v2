@@ -100,17 +100,22 @@ def parse_penawaran_1(input_text):
             flight['departure_airport_code'] = lines[i + 4]
             flight['arrival_airport_code'] = lines[i + 5]
             flight['flight_code'] = lines[i + 9]
-
-            if "Layover" not in lines[i-1]:
-                first_departure_date = flight['departure_date']
+              
             if "Layover" in lines[i-1]:
               layover = lines[i-1]         
               
-            # Use the new function to handle both date and time
-            days_diff = calculate_days_with_time(flight['departure_time'], flight['arrival_time'])
+            if "Layover" not in lines[i-1]:
+              first_departure_date = flight['departure_date']
+              second_departure_date = flight['arrival_date']
 
-            # Append (+1) if flight arrives the next day
-            flight['arrival_time'] += f"(+{days_diff})" if days_diff > 0 else ""
+              # Use the new function to handle both date and time
+              if diff_day(first_departure_date, second_departure_date) > 0:
+                days_diff = diff_day(first_departure_date, second_departure_date)
+              else:
+                days_diff = calculate_days_with_time(flight['departure_time'], flight['arrival_time']) # flight['departure_date'], flight['arrival_date'], 
+
+              # Append (+1) if flight arrives the next day
+              flight['arrival_time'] += f"(+{days_diff})" if days_diff > 0 else ""
 
             flights.append(flight)
             
