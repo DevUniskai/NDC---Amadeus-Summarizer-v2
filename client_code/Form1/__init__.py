@@ -776,6 +776,13 @@ def handle_confirmation_amd(text):
         
       index = item.strip().split(" ")
       # print(index)
+
+      # kalau inputnya ada yang ga pakai '*'
+      # print("before: " + index[6])
+      if '*' not in index[6]:
+        index[6] = index[6] + '*' + index[7]
+        del index[7]
+        # print("after: " + index[6])
       
       # if code and number are gabung
       if len(index[2]) > 2:
