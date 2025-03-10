@@ -858,7 +858,7 @@ def parse_konfirmasi_citilink(text):
   num = 1
 
   # General regular expression to match any prefix consisting of uppercase letters followed by a space
-  prefix_pattern = re.compile(r"^(MR|MS|MRS|MISS|DR|CAPT|PROF)\b", re.IGNORECASE)
+  prefix_pattern = re.compile(r"^(MR|MS|MRS|MISS|MSTR|CAPT|PROF)\b", re.IGNORECASE)
 
   # Get Passenger Data
   for index in range(pass_idx, len(lines)):
