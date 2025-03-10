@@ -853,10 +853,13 @@ def parse_konfirmasi_citilink(text):
   print("\nResult Konfirmasi\n")
   lines = text.strip().split('\n')
   pass_idx = get_index(lines, "Penumpang & Daftar kursi") + 2
+  inf_idx = get_index(lines, "Detil Penumpang") + 2
 
   output_text = ""
   num = 1
 
+  infants = []
+  
   # General regular expression to match any prefix consisting of uppercase letters followed by a space
   prefix_pattern = re.compile(r"^(MR|MS|MRS|MISS|MSTR|CAPT|PROF)\b", re.IGNORECASE)
 
@@ -871,9 +874,28 @@ def parse_konfirmasi_citilink(text):
     # Split the line on tabs and check if the line matches the prefix pattern
     split_data = line.split("\t")
     if len(split_data) > 0 and prefix_pattern.match(split_data[0].strip()):
-      pass_name = str(num) + ". " + split_data[0].strip()
+      if "MSTR" in split_data[0]:
+        pass_name = str(num) + ". " + split_data[0].strip() + " *Child*"
+      else:
+        pass_name = str(num) + ". " + split_data[0].strip()
       output_text += pass_name + "\n"
-      num += 1  
+      num += 1
+
+    # Get Infant Data
+  for i in range(inf_idx, len(lines)):
+    line = lines[i].strip()
+
+    if "Penumpang & Daftar kursi" in line:
+      break
+
+    if line and not any (x in line for x in ["Passenger", "Type", "Gender"]):
+      name = line.strip()
+      if i + 1 < len(lines) and "Infant" in lines[i + 1]:
+        inf_name = name.split("Perjalanan dengan")[0]
+        infants.append(inf_name)
+
+  for infant in infants:
+    output_text += f"{num}. {infant} *Infant*\n"
 
   # Get Itin
   itin_idx = get_index(lines, "Berangkat") + 2
