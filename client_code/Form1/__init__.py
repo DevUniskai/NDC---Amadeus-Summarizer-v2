@@ -701,12 +701,16 @@ def is_confirmation_amd(text):
 
 def clean_schedule_amd(text):
   flight_code = text[2] + text[3]
-  datetime = text[5]
+  subclass = text[4]
+  raw_date = text[5]
+  day = raw_date[:2]
+  month = raw_date[2:].capitalize()  # 'APR' -> 'Apr'
+  datetime = f"{day} {month}"
   city = text[6][2:]
   city = city[:3] + "-" + city[3:]
-  dep_time = text[9][:2]+"."+text[9][2:]
-  arr_time = text[10][:2]+"."+text[10][2:]
-  output = datetime + " | " + city + " | " + dep_time + "-" + arr_time + " | " + flight_code + "\n"
+  dep_time = text[9][:2]+":"+text[9][2:]
+  arr_time = text[10][:2]+":"+text[10][2:]
+  output = datetime + " | " + city + " | " + dep_time + "-" + arr_time + " | " + flight_code + " " + subclass + "\n"
   return output
 
 def remove_numeric_amd(text):
@@ -724,12 +728,49 @@ def handle_name_amd(text):
   return name
 
 def handle_schedule_amd(text):
+  airline_map = {
+    "SQ": "Singapore Airlines",
+    "MH": "Malaysia Airlines",
+    "QR": "Qatar Airways",
+    "GA": "Garuda",
+    "NH": "ANA",
+    "JL": "Japan Airlines",
+    "QF": "Qantas Airways",
+    "3K": "Jetstar",
+    "JQ": "Jetstar",
+    "EK": "Emirates",
+    "EY": "Etihad",
+    "TK": "Turkish Airways",
+    "CI": "China Airlines",
+    "BR": "Eva Air",
+    "CA": "Air China",
+    "CZ": "China Southern Airlines",
+    "MU": "China Eastern Airlines",
+    "MF": "Xiamen Airlines",
+    "KE": "Korean Airlines",
+    "LH": "Lufthansa",
+    "OZ": "Asiana Airlines",
+    "VN": "Vietnam Airlines"
+  }
+
   split = text.split("\n")
   split = [i for i in split if "RTSVC" not in i]
   split = [i for i in split if len(i) != 0]
   flag = 1
 
-  output = "*By Singapore Airlines*\n"
+  # Default airline name
+  airline_name = "__ Airlines"
+
+  # Try to detect airline code from the first valid line
+  for line in split:
+    parts = line.strip().split()
+    if len(parts) > 1:
+      code = parts[1]
+    if code in airline_map:
+      airline_name = airline_map[code]
+      break
+
+  output = f"*By {airline_name}*\n"
 
   for i in split:
     index = i.strip().split(" ")
