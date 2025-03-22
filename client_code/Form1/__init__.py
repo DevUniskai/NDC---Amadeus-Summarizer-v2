@@ -832,6 +832,11 @@ def handle_confirmation_amd(text):
         output += f"\n*By {airline_name}*\n"
         flag = 1
         
+      # if code and number are gabung
+      if len(index[2]) > 2:
+        flight_code = index[2][:2] 
+        flight_number = index[2][2:]  
+        index = index[:2] + [flight_code, flight_number] + index[3:]
       # print(index)
 
       # kalau inputnya ada yang ga pakai '*'
@@ -841,11 +846,6 @@ def handle_confirmation_amd(text):
         del index[7]
         # print("after: " + index[6])
       
-      # if code and number are gabung
-      if len(index[2]) > 2:
-        flight_code = index[2][:2] 
-        flight_number = index[2][2:]  
-        index = index[:2] + [flight_code, flight_number] + index[3:] 
       
       output += clean_schedule_amd(index)          
   
