@@ -702,14 +702,24 @@ def is_confirmation_amd(text):
 def clean_schedule_amd(text):
   flight_code = text[2] + text[3]
   subclass = text[4]
+  
   raw_date = text[5]
   day = raw_date[:2]
   month = raw_date[2:].capitalize()  # 'APR' -> 'Apr'
   datetime = f"{day} {month}"
+  
   city = text[6][2:]
   city = city[:3] + "-" + city[3:]
+  
   dep_time = text[9][:2]+":"+text[9][2:]
   arr_time = text[10][:2]+":"+text[10][2:]
+
+  # if diff_day(datetime, arr_time) > 0:
+  #   days_diff = diff_day(datetime, arr_time)
+  # else:
+  days_diff = calculate_days_with_time(dep_time, arr_time)
+
+  arr_time += f"(+{days_diff})" if days_diff > 0 else ""
   output = datetime + " | " + city + " | " + dep_time + "-" + arr_time + " | " + flight_code + " " + subclass + "\n"
   return output
 
