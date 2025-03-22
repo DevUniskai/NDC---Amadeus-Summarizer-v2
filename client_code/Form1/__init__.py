@@ -737,8 +737,8 @@ def handle_name_amd(text):
   name = re.sub(' +', ' ', name)
   return name
 
-def handle_schedule_amd(text):
-  airline_map = {
+# Shared Airline Code Map
+AIRLINE_MAP = {
     "SQ": "Singapore Airlines",
     "MH": "Malaysia Airlines",
     "QR": "Qatar Airways",
@@ -761,8 +761,13 @@ def handle_schedule_amd(text):
     "LH": "Lufthansa",
     "OZ": "Asiana Airlines",
     "VN": "Vietnam Airlines"
-  }
+}
 
+# Shared airline name resolver
+def get_airline_name(code):
+    return AIRLINE_MAP.get(code, "__ Airlines")
+
+def handle_schedule_amd(text):
   split = text.split("\n")
   split = [i for i in split if "RTSVC" not in i]
   split = [i for i in split if len(i) != 0]
@@ -775,9 +780,7 @@ def handle_schedule_amd(text):
   for line in split:
     parts = line.strip().split()
     if len(parts) > 1:
-      code = parts[1]
-    if code in airline_map:
-      airline_name = airline_map[code]
+      airline_name = get_airline_name(parts[1])
       break
 
   output = f"*By {airline_name}*\n"
@@ -807,6 +810,8 @@ def handle_confirmation_amd(text):
   pnr = ""
   count=1
   flag=0
+  airline_name = "__ Airlines"
+  
   for idx, item in enumerate(split):
     if idx == 0:
       pnr = item
@@ -821,11 +826,12 @@ def handle_confirmation_amd(text):
           # print(output)
           count+=1
     else:
+      index = item.strip().split(" ")
       if flag == 0:
-        output += "\n*By ___ Airlines*\n"
+        airline_name = get_airline_name(index[2][:2])  # flight code is part of index[2]
+        output += f"\n*By {airline_name}*\n"
         flag = 1
         
-      index = item.strip().split(" ")
       # print(index)
 
       # kalau inputnya ada yang ga pakai '*'
