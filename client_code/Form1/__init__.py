@@ -539,6 +539,8 @@ def parse_konfirmasi_newFlightDetail(text):
     
     return "*By Singapore Airlines*\n" + "\n".join(flight_details)
 
+import re
+
 def parse_konfirmasi_1(input_text):
   print("\n Result Konfirmasi\n\n")
   lines = [line.strip() for line in input_text.splitlines() if line.strip()]
@@ -552,6 +554,8 @@ def parse_konfirmasi_1(input_text):
   flights = []
   passengers = []
   output_text = ""
+  child_count = 0
+  adult_count = 0
 
   for data in flightData:
     flight = {}
@@ -568,8 +572,12 @@ def parse_konfirmasi_1(input_text):
 
   for data in passengerData:
     data = data.split("\t")
+
     # passengers.append(f"{data[2] if data[2] != '' else ''} {data[0]} {data[1]}")
     names = []
+    krisflyer = ""
+    passenger_type = ""
+
     for name in data:
       if "Traveller Information" in name:
         break
@@ -579,9 +587,26 @@ def parse_konfirmasi_1(input_text):
         break
       if name:
         names.append(name)
-        
-    if names:
-      passengers.append(" ".join(names))
+    
+    if "CHD" in data:
+      passenger_type = "CHD"
+      child_count += 1
+    elif "ADT" in data:
+      passenger_type = "ADT"
+      adult_count += 1
+    
+    if "SQ" in data:
+      idx = data.index("SQ")
+      if idx + 1 < len(data) and re.match(r'^\d+$', data[idx + 1]):
+        krisflyer = data[idx + 1]
+
+    full_name = " ".join(names)
+    if krisflyer:
+      full_name += f" #{krisflyer}"
+    if passenger_type == "CHD":
+      full_name += " *Child*"
+    if full_name:
+      passengers.append(full_name)
 
   for i, passenger in enumerate(passengers, 1):
     output_text += f"{i}. {passenger}\n"
@@ -592,6 +617,16 @@ def parse_konfirmasi_1(input_text):
   for flight in flights:
     output_text += f"{flight['departure_date']} | {flight['departure_airport_code']}-{flight['arrival_airport_code']} | {flight['departure_time']}-{flight['arrival_time']} | {flight['flight_code']} {flight['cabin_class']}\n"
 
+
+  output_text += "\n"
+
+  if adult_count:
+    output_text += "*Adult : Rp*\n"
+  if child_count:
+    output_text += "*Child : Rp*\n"
+
+  output_text += "\n> *Ticketing Time Limit :*"
+  
   return output_text
 
 # Air Asia #
