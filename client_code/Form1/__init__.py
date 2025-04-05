@@ -765,6 +765,9 @@ def remove_numeric_amd(text):
 def handle_name_amd(text):
   split = text.split("(")[0].strip()
   split = split.split("/")
+  if len(split) < 2:
+    return text.strip()
+
   last_name = split[0]
   front_name = split[1].split(" ")
   name = front_name[-1] + " " + ' '.join(front_name[0:len(front_name)-1]) + " " + last_name
@@ -795,7 +798,8 @@ AIRLINE_MAP = {
     "KE": "Korean Airlines",
     "LH": "Lufthansa",
     "OZ": "Asiana Airlines",
-    "VN": "Vietnam Airlines"
+    "VN": "Vietnam Airlines",
+    "CX": "Cathay Pacific"
 }
 
 # Shared airline name resolver
@@ -851,7 +855,7 @@ def handle_confirmation_amd(text):
     if idx == 0:
       pnr = item
       # print("this is pnr: " + pnr + "\n")
-    elif "." in item:
+    elif re.match(r'^\d+\.', item.strip()):
       names = item.strip().split(".")
       # print(names)
       for name in names:
