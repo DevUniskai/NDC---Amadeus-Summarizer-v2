@@ -539,8 +539,6 @@ def parse_konfirmasi_newFlightDetail(text):
     
     return "*By Singapore Airlines*\n" + "\n".join(flight_details)
 
-import re
-
 def parse_konfirmasi_1(input_text):
   print("\n Result Konfirmasi\n\n")
   lines = [line.strip() for line in input_text.splitlines() if line.strip()]
@@ -556,7 +554,8 @@ def parse_konfirmasi_1(input_text):
   output_text = ""
   child_count = 0
   adult_count = 0
-
+  infant_count = 0
+  
   for data in flightData:
     flight = {}
     data = data.split()
@@ -594,6 +593,9 @@ def parse_konfirmasi_1(input_text):
     elif "ADT" in data:
       passenger_type = "ADT"
       adult_count += 1
+    elif "INF" in data:
+      passenger_type = "INF"
+      infant_count += 1
     
     if "SQ" in data:
       idx = data.index("SQ")
@@ -605,6 +607,8 @@ def parse_konfirmasi_1(input_text):
       full_name += f" #{krisflyer}"
     if passenger_type == "CHD":
       full_name += " *Child*"
+    elif passenger_type == "INF":
+      full_name += " *Infant*"
     if full_name:
       passengers.append(full_name)
 
@@ -624,6 +628,8 @@ def parse_konfirmasi_1(input_text):
     output_text += "*Adult : Rp*\n"
   if child_count:
     output_text += "*Child : Rp*\n"
+  if infant_count:
+    output_text += "*Infant : Rp*\n"
 
   output_text += "\n> *Ticketing Time Limit :*"
   
