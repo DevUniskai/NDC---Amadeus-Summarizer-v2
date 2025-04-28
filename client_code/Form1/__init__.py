@@ -612,15 +612,18 @@ def parse_konfirmasi_1(input_text):
     if full_name:
       passengers.append(full_name)
 
-  for i, passenger in enumerate(passengers, 1):
-    output_text += f"{i}. {passenger}\n"
+  # if passenger cuma 1
+  if len(passengers) == 1:
+    output_text += f"{passengers[0]}\n"
+  else:
+    for i, passenger in enumerate(passengers, 1):
+      output_text += f"{i}. {passenger}\n"
   
   output_text += "\n"
   output_text += "*By Singapore Airlines*\n"
 
   for flight in flights:
     output_text += f"{flight['departure_date']} | {flight['departure_airport_code']}-{flight['arrival_airport_code']} | {flight['departure_time']}-{flight['arrival_time']} | {flight['flight_code']} {flight['cabin_class']}\n"
-
 
   output_text += "\n"
 
@@ -891,9 +894,7 @@ def handle_confirmation_amd(text):
         del index[7]
         # print("after: " + index[6])
       
-      
       output += clean_schedule_amd(index)          
-  
   return output
 
 ### END of AMADEUS FUNCTION LOGIC ###
@@ -1056,21 +1057,35 @@ def parse_konfirmasi_citilink(text):
 def parse_passenger_details(lines):
     pass_idx = get_index(lines, "Passenger Details") + 2
     output_text = ""
+    passengers = []
+  
     for i in lines[pass_idx:]:
         if "Itinerary Details" in i:
             break
+          
         split_data = i.split("\t")
+      
         if len(split_data) < 2:
             continue
+          
         no_urut = split_data[0].strip()
         name = split_data[1].strip()
         passenger_number = re.match(r'(\d+)', no_urut)
+        
         if passenger_number:
             no_urut = passenger_number.group(1) + "."
         else:
             no_urut = ''
-        pass_name = no_urut + " " + name
-        output_text += pass_name + "\n"
+
+        passengers.append((no_urut, name))
+    
+    # check passengers count
+    if len(passengers) == 1:
+        output_text += passengers[0][1] + "\n"  # only the name, no number
+    else:
+        for no_urut, name in passengers:
+            pass_name = no_urut + " " + name
+            output_text += pass_name + "\n"
     return output_text.strip()
 
 def parse_itinerary(lines, itin_start_idx):
