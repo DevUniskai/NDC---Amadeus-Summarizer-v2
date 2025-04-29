@@ -897,15 +897,15 @@ def handle_confirmation_amd(text):
       
       output += clean_schedule_amd(index)
 
-    # Now handle passenger names:
-    passenger_output = ""
-    if len(passenger_names) == 1:
-        passenger_output += passenger_names[0] + "\n"
-    else:
-        for idx, name in enumerate(passenger_names, 1):
-            passenger_output += f"{idx}. {name}\n"
+  # Now handle passenger names:
+  passenger_output = ""
+  if len(passenger_names) == 1:
+    passenger_output += passenger_names[0] + "\n"
+  else:
+    for idx, name in enumerate(passenger_names, 1):
+      passenger_output += f"{idx}. {name}\n"
 
-    output = passenger_output + output
+  output = passenger_output + output
   return output
 
 ### END of AMADEUS FUNCTION LOGIC ###
@@ -931,17 +931,19 @@ def handle_confirmation_garuda(text):
   pnr = ""
   count=1
   flag=0
+  passenger_names = []
+  
   for idx, item in enumerate(split):
     if idx == 0:
       pnr = item
       # print("this is pnr: " + pnr + "\n")
     elif "." in item:
       names = item.strip().split(".")
-      print(names)
+      # print(names)
       for name in names:
         new_name = remove_numeric_amd(name)
         if len(new_name) != 0:
-          output += str(count) + ". " + handle_name_amd(new_name) + "\n"
+          passenger_names.append(handle_name_amd(new_name))
           count+=1
     else:
       if flag == 0:
@@ -958,7 +960,16 @@ def handle_confirmation_garuda(text):
       if len(index[11]) != 1:
         del index[13]
       output += clean_schedule_garuda(index)          
-  
+
+  # Now handle passenger names:
+  passenger_output = ""
+  if len(passenger_names) == 1:
+    passenger_output += passenger_names[0] + "\n"
+  else:
+    for idx, name in enumerate(passenger_names, 1):
+      passenger_output += f"{idx}. {name}\n"
+
+  output = passenger_output + output
   return output
 ### END OF GARUDA LOGIC ###
 
@@ -971,7 +982,6 @@ def parse_konfirmasi_citilink(text):
 
   output_text = ""
   num = 1
-
   infants = []
   
   # General regular expression to match any prefix consisting of uppercase letters followed by a space
