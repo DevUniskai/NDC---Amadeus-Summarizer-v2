@@ -858,6 +858,7 @@ def handle_confirmation_amd(text):
   pnr = ""
   count=1
   flag=0
+  passenger_names = []
   airline_name = "__ Airlines"
   
   for idx, item in enumerate(split):
@@ -870,7 +871,7 @@ def handle_confirmation_amd(text):
       for name in names:
         new_name = remove_numeric_amd(name)
         if len(new_name) != 0:
-          output += str(count) + ". " + handle_name_amd(new_name) + "\n"
+          passenger_names.append(handle_name_amd(new_name))
           # print(output)
           count+=1
     else:
@@ -894,7 +895,17 @@ def handle_confirmation_amd(text):
         del index[7]
         # print("after: " + index[6])
       
-      output += clean_schedule_amd(index)          
+      output += clean_schedule_amd(index)
+
+    # Now handle passenger names:
+    passenger_output = ""
+    if len(passenger_names) == 1:
+        passenger_output += passenger_names[0] + "\n"
+    else:
+        for idx, name in enumerate(passenger_names, 1):
+            passenger_output += f"{idx}. {name}\n"
+
+    output = passenger_output + output
   return output
 
 ### END of AMADEUS FUNCTION LOGIC ###
