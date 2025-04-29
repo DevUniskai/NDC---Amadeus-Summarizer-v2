@@ -979,33 +979,36 @@ def parse_konfirmasi_citilink(text):
   lines = text.strip().split('\n')
   pass_idx = get_index(lines, "Penumpang & Daftar kursi") + 2
   inf_idx = get_index(lines, "Detil Penumpang") + 2
-
   output_text = ""
   num = 1
-  infants = []
-  
+
   # General regular expression to match any prefix consisting of uppercase letters followed by a space
   prefix_pattern = re.compile(r"^(MR|MS|MRS|MISS|MSTR|CAPT|PROF)\b", re.IGNORECASE)
+
+  passengers = []
+  infants = []
 
   # Get Passenger Data
   for index in range(pass_idx, len(lines)):
     line = lines[index].strip()
-
+    # print(line)
     # Check if the line is part of the "Berangkat" section and break
     if "Berangkat" in line:
       break
 
     # Split the line on tabs and check if the line matches the prefix pattern
     split_data = line.split("\t")
+    # print(split_data)
     if len(split_data) > 0 and prefix_pattern.match(split_data[0].strip()):
       if "MSTR" in split_data[0]:
-        pass_name = str(num) + ". " + split_data[0].strip() + " *Child*"
+        passengers.append(split_data[0].strip() + " *Child*")
       else:
-        pass_name = str(num) + ". " + split_data[0].strip()
-      output_text += pass_name + "\n"
-      num += 1
+        passengers.append(split_data[0].strip())
 
-    # Get Infant Data
+      # output_text += pass_name + "\n"
+      # num += 1
+
+  # Get Infant Data
   for i in range(inf_idx, len(lines)):
     line = lines[i].strip()
 
@@ -1018,37 +1021,48 @@ def parse_konfirmasi_citilink(text):
         inf_name = name.split("Perjalanan dengan")[0]
         infants.append(inf_name)
 
-  for infant in infants:
-    output_text += f"{num}. {infant} *Infant*\n"
+  total_passengers = len(passengers) + len(infants)
+  
+  if total_passengers == 1:
+    output_text += passengers[0] + "\n"
+  else:
+    for idx, passenger in enumerate(passengers, 1):
+      output_text += f"{idx}. {passenger}\n"
+
+  # Output Infant Data
+  start_num = len(passengers) + 1 if total_passengers > 1 else 2
+  for idx, infant in enumerate(infants, start_num):
+    output_text += f"{idx}. {infant} *Infant*\n"
 
   # Get Itin
   itin_idx = get_index(lines, "Berangkat") + 2
   # print(lines[itin_idx:])
 
-  output_text += "\n*By Citilink*\n"
+  output_text += "\n*By __ Airlines*\n"
 
   while itin_idx < len(lines):
-    # Extract date no year (if with year tambahin  \d{2})
-    date_pattern = r"\d{2} \w{3}"
+    # Extract date
+    date_pattern = r"\d{2} \w{3} \d{2}"
 
     # Convert the list slice to a string before using it in re.search
     date_match = re.search(date_pattern, ' '.join(lines[itin_idx:]))
     date = date_match.group(0) if date_match else ""
+    # print(date)
 
     # Extract airport codes
     place_pattern = r"\b([A-Z]{3})\b"
 
     # Convert the list slice to a string before using it in re.findall
     places = re.findall(place_pattern, ' '.join(lines[itin_idx:]))
-    print(places)
+    # print(places)
     # if len(places) < 2:
     #   itin_idx += 5  # Skip to the next iteration if not enough codes are found
     #   continue
 
     itinerary = places[0] + "-" + places[1] if len(places) >= 1 else ""
-  
+
     # Extract time
-    time_pattern = r"Jam (\d{1,2}\.\d{2})"
+    time_pattern = r"Jam (\d{2}.\d{2})"
 
     # Convert the list slice to a string before using it in re.findall
     times = re.findall(time_pattern, ' '.join(lines[itin_idx:]))
@@ -1057,18 +1071,21 @@ def parse_konfirmasi_citilink(text):
     else:
         time_info = ""
 
+    # print("time: " + time_info)
+
     # Extract flight number
     flight_number_pattern = r"Penerbangan\s+([A-Z]+\s*\d+)"
     flight_match = re.search(flight_number_pattern, ' '.join(lines[itin_idx:]))
     # print(flight_match)
     flight_number = flight_match.group(1).replace(" ", "") if flight_match else ""
+    # print(flight_number)
 
     # Combine all information
     if date and itinerary and time_info:
         full_itinerary = f"{date} | {itinerary} | {time_info} | {flight_number}\n"
         # print("Itinerary:", full_itinerary)
         output_text += full_itinerary
-    
+
     itin_idx += 5
 
   return output_text
