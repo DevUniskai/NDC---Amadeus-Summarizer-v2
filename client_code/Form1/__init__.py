@@ -21,6 +21,32 @@ def diff_day(date1, date2):
   # print("Difference in days:", difference_in_days)
   return difference_in_days
 
+def get_index_multiple(list_item, search_text):
+  for text in search_text:
+    idx = get_index(list_item, text)
+    if idx != -1:
+      return idx
+  return -1
+
+def convert_time24h(time_str):
+  try:
+    return datetime.strptime(time_str.strip(), "%I:%M%p").strftime("%H:%M")
+  except ValueError:
+    return ""
+  
+def calculate_days_with_time(dep_time, arr_time):
+    days_diff = 0
+
+    # Convert times for comparison
+    dep_time_obj = datetime.strptime(dep_time, "%H:%M").time()
+    arr_time_obj = datetime.strptime(arr_time, "%H:%M").time()
+
+    # If arrival time is earlier than departure time, it's an overnight flight (+1 day)
+    if arr_time_obj < dep_time_obj:
+        days_diff += 1
+
+    return days_diff
+  
 def parse_flight_schedule(input_text):
     lines = input_text.strip().split('\n')
     if "Layover" in input_text:
@@ -70,18 +96,6 @@ def parse_penawaran(input_text):
   
   return output_text
 
-def calculate_days_with_time(dep_time, arr_time):
-    days_diff = 0
-
-    # Convert times for comparison
-    dep_time_obj = datetime.strptime(dep_time, "%H:%M").time()
-    arr_time_obj = datetime.strptime(arr_time, "%H:%M").time()
-
-    # If arrival time is earlier than departure time, it's an overnight flight (+1 day)
-    if arr_time_obj < dep_time_obj:
-        days_diff += 1
-
-    return days_diff
 
 def parse_penawaran_1(input_text):
     lines = [line.strip() for line in input_text.splitlines() if line.strip()]
@@ -1297,61 +1311,72 @@ def parse_konfirmasi_lionair(text):
 def parse_jetstar(text):
   print("\nResult Konfirmasi\n")
   lines = text.strip().split('\n')
-  pass_idx = get_index(lines, "Penumpang") + 1
-
+  pass_idx = get_index_multiple(lines, ["Penumpang", "Passengers"]) + 1
   output_text = ""
   num = 1
 
+  passengers = []
+
   # Get Passenger Data
-  for i in range(pass_idx, len(lines)):
-    if "Rincian Pemesanan" in lines[i]:
+  while pass_idx < len(lines):
+    # split_data = lines[i].split("\t")
+    line = lines[pass_idx].strip()
+
+    if not line:
       break
+    if "(" in line and ")" in line:
+      pass_idx += 1
+      continue
 
-    pass_name = str(num) + ". " + lines[i]
-    output_text += pass_name + "\n"
-    num += 1
-    print(pass_name)
-
-  # Get Itin
-  itin_idx = get_index(lines, "Penerbangan berangkat") + 1
+    # if len(split_data) > 0:
+    passengers.append(line)
+    pass_idx += 1
+  
+  # Add passengers to output
+  if len(passengers) == 1:
+    output_text += f"{passengers[0]}\n"
+  else:
+    for i, p in enumerate(passengers, 1):
+      output_text += f"{i}. {p}\n"
 
   output_text += "\n*By Jetstar Airlines*\n"
+  
+  # Get Itin
+  itin_idx = get_index_multiple(lines, ["Booking reference", "REFERENSI PEMESANAN"]) + 2
 
   while itin_idx < len(lines):
-    flight_code_pattern = r"(\d+[A-Z] \d+)"
-    flight_number_match = re.search(flight_code_pattern, lines[itin_idx])
-    flight_number = flight_number_match.group(1).replace(" ", "") if flight_number_match else ""
+    line = lines[itin_idx].strip()
 
-    place_pattern = r"- (.+ to .+)"
-    place_match = re.search(place_pattern, lines[itin_idx])
-    places = place_match.group(1).replace(" to ", "-") if place_match else ""
+    # Find flight number
+    if re.match(r'^[A-Z0-9]{2,4}\d{2,4}$', line):  # e.g. 3K287
+      flight_number = line
 
-    date_pattern = r"\d{1,2} \w+ \d{4}"
-    date_match = re.search(date_pattern, lines[itin_idx + 1])
-    date = date_match.group(0) if date_match else ""
+      # Expect format to be:
+      # line: SIN
+      # line: KNO
+      origin = lines[itin_idx - 2].strip()
+      destination = lines[itin_idx - 1].strip()
+      route = f"{origin}-{destination}"
 
-    time_pattern = r"(\d{1,2}.\d{2}\w{2})"
-    time_match = re.search(time_pattern, lines[itin_idx + 1])
-    time = time_match.group(1) if time_match else ""
-    # Remove 'am'/'pm' and split
-    time_cleaned = time.replace("am", "").replace("pm", "")
-    times = time_cleaned.split('.')
+      # Find departure time (should be ~7 lines ahead)
+      for j in range(itin_idx + 1, len(lines)):
+        if re.match(r'\d{1,2}:\d{2}[ap]m', lines[j], re.IGNORECASE):
+          dep_time_raw = lines[j].strip()
+          dep_time = convert_time24h(dep_time_raw)
+          arr_time_raw = lines[j + 4].strip()
+          # print(arr_time_raw)
+          arr_time = convert_time24h(arr_time_raw)
+          date_line = lines[j - 1].strip()
+          try:
+            date = datetime.strptime(date_line, "%a\n%d %b %Y").strftime("%d %b %Y")
+          except:
+            date = date_line  # fallback
 
-    # Convert the hour
-    hour = int(times[0])
-    minute = times[1]
-    if "pm" in time:
-        if hour != 12:
-            hour += 12
-    elif "am" in time:
-        if hour == 12:
-            hour = 0
+            output_text += f"{date} | {route} | {dep_time}-{arr_time} | {flight_number}\n"
+            break
+      break  # assuming one segment
 
-    new_time = f"{hour:02d}.{minute}"
-  
-    output_text += date + " | " + places + " | " + new_time + " | " + flight_number + "\n"
-    
-    itin_idx += 2
+    itin_idx += 1
 
   return output_text
   
