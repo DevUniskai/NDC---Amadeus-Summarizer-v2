@@ -1052,11 +1052,11 @@ def parse_konfirmasi_citilink(text):
   itin_idx = get_index(lines, "Berangkat") + 2
   # print(lines[itin_idx:])
 
-  output_text += "\n*By __ Airlines*\n"
+  output_text += "\n*By Citilink*\n"
 
   while itin_idx < len(lines):
     # Extract date
-    date_pattern = r"\d{2} \w{3} \d{2}"
+    date_pattern = r"\d{2} \w+ \d{2}"
 
     # Convert the list slice to a string before using it in re.search
     date_match = re.search(date_pattern, ' '.join(lines[itin_idx:]))
@@ -1076,12 +1076,18 @@ def parse_konfirmasi_citilink(text):
     itinerary = places[0] + "-" + places[1] if len(places) >= 1 else ""
 
     # Extract time
-    time_pattern = r"Jam (\d{2}.\d{2})"
+    time_pattern = r"Jam (\d{1,2}.\d{2})"
 
     # Convert the list slice to a string before using it in re.findall
     times = re.findall(time_pattern, ' '.join(lines[itin_idx:]))
-    if len(times) >= 2:
-        time_info = times[0] + "-" + times[1]
+    normalized_times = []
+    for t in times:
+        hour, minute = t.split(".")
+        normalized_time = f"{int(hour):02}.{minute}"  # ensures 2-digit hour
+        normalized_times.append(normalized_time)
+
+    if len(normalized_times) >= 2:
+        time_info = f"{normalized_times[0]}-{normalized_times[1]}"
     else:
         time_info = ""
 
