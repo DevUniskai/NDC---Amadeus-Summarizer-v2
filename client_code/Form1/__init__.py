@@ -849,7 +849,14 @@ def handle_schedule_amd(text):
 
   for i in split:
     index = i.strip().split(" ")
-
+    
+    # if code and number are gabung
+    if len(index[2]) > 2:
+      flight_code = index[2][:2] 
+      flight_number = index[2][2:]  
+      index = index[:2] + [flight_code, flight_number] + index[3:]
+      # print(index)
+      
     # kalau inputnya ada yang ga pakai '*'
     # print("before: " + index[6])
     if '*' not in index[6]:
@@ -857,9 +864,11 @@ def handle_schedule_amd(text):
       del index[7]
       # print("after: " + index[6])
       
-    if flag == int(index[0]):
+    try:
+      int(index[0])  # simple check to ensure valid flight line
       output += clean_schedule_amd(index)
-      flag+=1
+    except:
+      continue
   return output
 
 def handle_confirmation_amd(text):
