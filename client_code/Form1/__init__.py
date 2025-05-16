@@ -882,6 +882,8 @@ def handle_confirmation_amd(text):
   count=1
   flag=0
   passenger_names = []
+  adult_count = 0
+  child_count = 0
   airline_name = "__ Airlines"
   
   for idx, item in enumerate(split):
@@ -889,14 +891,20 @@ def handle_confirmation_amd(text):
       pnr = item
       # print("this is pnr: " + pnr + "\n")
     elif re.match(r'^\d+\.', item.strip()):
-      names = item.strip().split(".")
-      # print(names)
-      for name in names:
-        new_name = remove_numeric_amd(name)
-        if len(new_name) != 0:
-          passenger_names.append(handle_name_amd(new_name))
-          # print(output)
-          count+=1
+      # Passenger line detected
+      lines = item.strip().split("\n")
+      for i, line in enumerate(lines):
+        if re.match(r'^\d+\.\w+\/\w+', line):
+          names = re.findall(r'\d+\.(\w+\/\w+ [A-Z]+)', line)
+          for name in names:
+            cleaned = remove_numeric_amd(name)
+            formatted = handle_name_amd(cleaned).strip()
+            if "MSTR" in formatted or "CHD" in formatted or "MISS" in formatted:
+              child_count += 1
+            elif "MR" in formatted or "MRS" in formatted or "MS" in formatted:
+              adult_count += 1
+            passenger_names.append(formatted)
+            count += 1
     else:
       index = item.strip().split(" ")
       if flag == 0:
@@ -929,6 +937,14 @@ def handle_confirmation_amd(text):
       passenger_output += f"{idx}. {name}\n"
 
   output = passenger_output + output
+
+  if adult_count:
+    output += "Adult : *Rp xxx*\n"
+  if child_count:
+    output += "Child : *Rp xxx*\n"
+    
+  output += "\n> Ticketing Time Limit :"
+  
   return output
 
 ### END of AMADEUS FUNCTION LOGIC ###
@@ -937,63 +953,80 @@ def handle_confirmation_amd(text):
 def clean_schedule_garuda(text):
   datetime = text[5]
   city = text[7][:3] + "-" + text[7][3:]
-  dep_time = text[13][:2]+"."+text[13][2:]
-  arr_time = text[14][:2]+"."+text[14][2:]  
-  flight_number = text[2] + text[3]
-  # print(flight_number)
-  output = datetime + " | " + city + " | " + dep_time + "-" + arr_time + " | " + flight_number + "\n"
+  dep_time = text[9][:2]+"."+text[9][2:]
+  arr_time = text[10][:2]+"."+text[10][2:]
+  flight_number = text[1] + text[2] + text[3]
+  class_type = text[4]
+  output = datetime + " | " + city + " | " + dep_time + "-" + arr_time + " | " + flight_number + " " + class_type + "\n"
   return output
-  
+
 def handle_confirmation_garuda(text):
-  split = text.split("\n")
-  # print(split)
-  split = [i for i in split if "RTSVC" not in i]
-  split = [i for i in split if len(i) != 0]
+  lines = [line.strip() for line in text.splitlines() if line.strip()]
+  passengers = []
+  flights = []
+  ff_number = ""
+  adult_count = 0
+  child_count = 0
 
-  output = ""
-  pnr = ""
-  count=1
-  flag=0
-  passenger_names = []
-  
-  for idx, item in enumerate(split):
-    if idx == 0:
-      pnr = item
-      # print("this is pnr: " + pnr + "\n")
-    elif "." in item:
-      names = item.strip().split(".")
-      # print(names)
+  output_text = ""
+
+  for i, line in enumerate(lines):
+    # Detect and extract all passenger lines like 1.RAZALI/IRSAN MR
+    if re.match(r'^\d+\.\w+\/\w+', line):
+      # Handle names split by numbers
+      names = re.findall(r'\d+\.(\w+\/\w+ [A-Z]+)', line)
       for name in names:
-        new_name = remove_numeric_amd(name)
-        if len(new_name) != 0:
-          passenger_names.append(handle_name_amd(new_name))
-          count+=1
+        cleaned = remove_numeric_amd(name)
+        formatted = handle_name_amd(cleaned).strip()
+        title = formatted.split(" ")[0].upper()
+        if title in ["MR", "MRS", "MS"]:
+          adult_count += 1
+        elif title in ["MSTR", "MISS", "CHD"]:
+          child_count += 1
+        passengers.append(formatted)
+
+    # Flight detail line
+    elif " GA " in line and re.search(r'\bGA\d{2,4}\b', line):
+      flights.append(line)
+
+    # Frequent flyer
+    elif "SSR FQTV GA" in line:
+      match = re.search(r'GA(\d+)', line)
+      if match:
+        ff_number = match.group(1)
+
+  # Output passenger names
+  for idx, passenger in enumerate(passengers, 1):
+    if idx == 1 and ff_number:
+      output_text += f"{passenger} #{ff_number}\n"
     else:
-      if flag == 0:
-        output += "\n*By Garuda*\n"
-        flag = 1
-      index = item.strip().split(" ")
-      
-      # if code and number are gabung
-      if len(index[2]) > 2:
-        flight_code = index[2][:2] 
-        flight_number = index[2][2:]  
-        index = index[:2] + [flight_code, flight_number] + index[3:] 
-        
-      if len(index[11]) != 1:
-        del index[13]
-      output += clean_schedule_garuda(index)          
+      output_text += f"{idx}. {passenger}\n" if len(passengers) > 1 else f"{passenger}\n"
 
-  # Now handle passenger names:
-  passenger_output = ""
-  if len(passenger_names) == 1:
-    passenger_output += passenger_names[0] + "\n"
-  else:
-    for idx, name in enumerate(passenger_names, 1):
-      passenger_output += f"{idx}. {name}\n"
+  output_text += "\n*By Garuda*\n"
 
-  output = passenger_output + output
-  return output
+  for line in lines:
+    parts = re.split(r'\s+', line.strip())
+    if len(parts) >= 12 and parts[1] == "GA":
+      # print("DEBUG:", parts)
+      # Fix GA185
+      if len(parts[2]) > 2:
+        parts = parts[:2] + [parts[2][:2], parts[2][2:]] + parts[3:]
+        # Simple fix: remove the stray item if length is 1 at a known index
+      if len(parts) > 13:
+        del parts[10]
+
+      # print("DEBUG (after):", parts)
+      if len(parts) >= 12:
+        output_text += clean_schedule_garuda(parts)
+
+  if adult_count:
+    output_text += "Adult : *Rp xxx*\n"
+  if child_count:
+    output_text += "Child : *Rp xxx*\n"
+
+  output_text += "\n> Ticketing Time Limit :"
+
+  return output_text
 ### END OF GARUDA LOGIC ###
 
 ### CITILINK ###
