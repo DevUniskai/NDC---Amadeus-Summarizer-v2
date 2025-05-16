@@ -782,8 +782,13 @@ def clean_schedule_amd(text):
   return output
 
 def remove_numeric_amd(text):
-  result = ''.join(i for i in text if not i.isdigit())
-  return result
+  # Remove leading number and dot (e.g., "1.")
+  text = re.sub(r'^\d+\.', '', text)
+  # Remove extra spaces
+  text = text.strip()
+  # Remove any leading/trailing periods
+  text = text.strip('.')
+  return text
 
 def handle_name_amd(text):
   split = text.split("(")[0].strip()
@@ -895,14 +900,22 @@ def handle_confirmation_amd(text):
       lines = item.strip().split("\n")
       for i, line in enumerate(lines):
         if re.match(r'^\d+\.\w+\/\w+', line):
-          names = re.findall(r'\d+\.(\w+\/\w+ [A-Z]+)', line)
-          for name in names:
-            cleaned = remove_numeric_amd(name)
-            formatted = handle_name_amd(cleaned).strip()
-            if "MSTR" in formatted or "CHD" in formatted or "MISS" in formatted:
-              child_count += 1
-            elif "MR" in formatted or "MRS" in formatted or "MS" in formatted:
+          # Split by passenger number markers like 1. 2. etc.
+          name_segments = re.split(r'\s*(?=\d+\.)', line.strip())
+          for segment in name_segments:
+            segment = remove_numeric_amd(segment.strip())
+            if not segment:
+              continue
+            formatted = handle_name_amd(segment).strip()
+
+            # Extract the title more robustly
+            match = re.search(r'\b(MR|MRS|MS|MSTR|MISS|CHD)\b', formatted.upper())
+            title = match.group(1) if match else ""
+
+            if title in ["MR", "MRS", "MS"]:
               adult_count += 1
+            elif title in ["MSTR", "MISS", "CHD"]:
+              child_count += 1
             passenger_names.append(formatted)
             count += 1
     else:
@@ -973,12 +986,18 @@ def handle_confirmation_garuda(text):
   for i, line in enumerate(lines):
     # Detect and extract all passenger lines like 1.RAZALI/IRSAN MR
     if re.match(r'^\d+\.\w+\/\w+', line):
-      # Handle names split by numbers
-      names = re.findall(r'\d+\.(\w+\/\w+ [A-Z]+)', line)
-      for name in names:
-        cleaned = remove_numeric_amd(name)
-        formatted = handle_name_amd(cleaned).strip()
-        title = formatted.split(" ")[0].upper()
+      # Split by passenger number markers like 1. 2. etc.
+      name_segments = re.split(r'\s*(?=\d+\.)', line.strip())
+      for segment in name_segments:
+        segment = remove_numeric_amd(segment.strip())
+        if not segment:
+          continue
+        formatted = handle_name_amd(segment).strip()
+
+        # Extract the title more robustly
+        match = re.search(r'\b(MR|MRS|MS|MSTR|MISS|CHD)\b', formatted.upper())
+        title = match.group(1) if match else ""
+
         if title in ["MR", "MRS", "MS"]:
           adult_count += 1
         elif title in ["MSTR", "MISS", "CHD"]:
