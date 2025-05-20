@@ -966,8 +966,8 @@ def handle_confirmation_amd(text):
 def clean_schedule_garuda(text):
   datetime = text[5]
   city = text[7][:3] + "-" + text[7][3:]
-  dep_time = text[9][:2]+"."+text[9][2:]
-  arr_time = text[10][:2]+"."+text[10][2:]
+  dep_time = text[10][:2]+"."+text[10][2:]
+  arr_time = text[11][:2]+"."+text[11][2:]
   flight_number = text[1] + text[2] + text[3]
   class_type = text[4]
   output = datetime + " | " + city + " | " + dep_time + "-" + arr_time + " | " + flight_number + " " + class_type + "\n"
