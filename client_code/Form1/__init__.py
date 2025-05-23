@@ -1116,6 +1116,9 @@ def parse_konfirmasi_citilink(text):
   output_text += "\n*By Citilink*\n"
 
   while itin_idx < len(lines):
+    if "Kembali" in lines[itin_idx]:
+      itin_idx += 1
+      continue
     # Extract date
     date_pattern = r"\d{2} \w+ \d{2}"
 
