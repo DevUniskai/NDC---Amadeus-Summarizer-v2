@@ -763,8 +763,8 @@ def clean_schedule_amd(text):
   
   raw_date = text[5]
   day = raw_date[:2]
-  month = raw_date[2:].capitalize()  # 'APR' -> 'Apr'
-  datetime = f"{day} {month}"
+  month = raw_date[2:]
+  datetime = f"{day}{month}"
   
   city = text[6][2:]
   city = city[:3] + "-" + city[3:]
@@ -776,9 +776,9 @@ def clean_schedule_amd(text):
   #   days_diff = diff_day(datetime, arr_time)
   # else:
   days_diff = calculate_days_with_time(dep_time, arr_time)
-
   arr_time += f"(+{days_diff})" if days_diff > 0 else ""
-  output = datetime + " | " + city + " | " + dep_time + "-" + arr_time + " | " + flight_code + " " + subclass + "\n"
+  
+  output = datetime + " " + city + " " + dep_time + "-" + arr_time + " " + flight_code + " " + subclass + "\n"
   return output
 
 def remove_numeric_amd(text):
