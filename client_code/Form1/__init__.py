@@ -854,6 +854,9 @@ def handle_schedule_amd(text):
 
   for i in split:
     index = i.strip().split(" ")
+
+    if len(index) < 11:  # not enough columns for a valid flight line
+      continue
     
     # if code and number are gabung
     if len(index[2]) > 2:
