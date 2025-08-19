@@ -96,7 +96,6 @@ def parse_penawaran(input_text):
   
   return output_text
 
-
 def parse_penawaran_1(input_text):
     lines = [line.strip() for line in input_text.splitlines() if line.strip()]
     flights = []
