@@ -651,6 +651,86 @@ def parse_konfirmasi_1(input_text):
   
   return output_text
 
+# SQ to EasyTravel #
+def parse_to_easytravel(input_text):
+  print("\n Result Konfirmasi\n\n")
+  lines = [line.strip() for line in input_text.splitlines() if line.strip()]
+  flightData = [line.replace("\t", " ") for line in lines if re.match(r'([A-Z]{3})\s+([A-Z]{3})\s+(\d{2} [A-Za-z]{3} \d{4} \d{2}:\d{2})\s+(\d{2} [A-Za-z]{3} \d{4} \d{2}:\d{2})\s+(SQ\d{3,4})\s+([A-Z])\s+([A-Z0-9]+)', line)]
+  # passengerData = [line for line in lines if "ADT	SQ" in line]
+  passengerData = [
+    lines[i] for i in range(len(lines))
+    if "View More" in lines[i] or (i + 2 < len(lines) and "View More" in lines[i + 2])
+  ]
+  pnr = lines[lines.index("PNR:") + 1]
+
+  flights = []
+  passengers = []
+  output_text = ""
+
+  for data in flightData:
+    flight = {}
+    data = data.split()
+    flight['departure_airport_code'] = data[0]
+    flight['arrival_airport_code'] = data[1]
+    flight['departure_date'] = data[2] + data[3].upper()
+    flight['departure_time'] = data[5][:2] + data[5][3:]
+    flight['arrival_date'] = data[6] + data[7].upper()
+    flight['arrival_time'] = data[9][:2] + data[9][3:]
+    flight['flight_code'] = data[10][:2]
+    flight['flight_number'] = data[10][2:]
+    flight['cabin_class'] = data[11]
+    flight['pnr'] = pnr
+    flights.append(flight)
+
+  for data in passengerData:
+    data = data.split("\t")
+
+    names = []
+    title = ""
+
+    for name in data:
+      if "Traveller Information" in name:
+        break
+      if "Title" in name:
+        break
+      if re.match(r'^\d', name):
+        break
+      if name:
+        # simpan title
+        if name.upper() in ["MR", "MRS", "MS", "MISS"]:
+          title = name.upper()
+        else:
+          names.append(name)
+
+      # kalau ada lebih dari 1 nama → gabungkan nama terakhir pakai "/"
+    if len(names) > 1:
+      # semua kecuali terakhir digabung dengan spasi
+      main_part = " ".join(names[:-1])
+      # terakhir pakai "/" dengan sebelumnya
+      full_name = f"{main_part}/{names[-1]} {title}"
+    elif names:
+      full_name = f"{names[0]} {title}"
+    else:
+      full_name = ""
+
+    if full_name:
+      passengers.append(full_name)
+
+  output_text += f"{pnr}\n"
+
+  i = 1
+  for passenger in passengers:
+    output_text += f"  {i}.{passenger}\n"
+    i += 1
+
+  for flight in flights:
+    output_text += f"  {i}  {flight['flight_code']} {flight['flight_number']} {flight['cabin_class']} {flight['departure_date']} 0*{flight['departure_airport_code']}{flight['arrival_airport_code']} HK3  {flight['departure_time']} {flight['arrival_time']}  {flight['arrival_date']}  E  {flight['flight_code']}/{flight['pnr']}\n"
+    i += 1
+
+  output_text += "\n"
+
+  return output_text
+  
 # Air Asia #
 def is_penawaran(text):
   split_text = text.split("\n")
@@ -1470,6 +1550,10 @@ def main_sq(text):
     return parse_konfirmasi_1(text)
   else:
     return parse_flight_schedule(text)
+    
+def main_sqet(text):
+  if is_konfirmasi_new(text):
+    return parse_to_easytravel(text)
 
 def main_garuda(text):
   return handle_confirmation_garuda(text)
@@ -1525,6 +1609,9 @@ class Form1(Form1Template):
 
       if airline == "Jetstar":
         summary = main_jetstar(self.text_area.text)
+
+      if airline == "SQ to EasyTravel":
+        summary = main_sqet(self.text_area.text)
         
       if summary:
         self.btn_copy.visible = True
