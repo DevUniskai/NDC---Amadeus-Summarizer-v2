@@ -1571,7 +1571,7 @@ def format_passenger_travelport(name_str, idx):
   if title in ['MSTR', 'MISS', 'CHD']:
     if first == "":
       return f"{idx}. {title} {last}"
-    return f"{idx}. {title} {first}/{last}"
+    return f"{idx}. {title} {last}/{first}"
   else:
     if first == "":
       return f"{idx}. {last} {title}"
@@ -1633,7 +1633,7 @@ def parse_travelport_to_easytravel(text):
 
     dep_arr_code = "0*" + dep + arr
 
-    flight_out = f"{idx}  {flight_code} {flight_num} {flight_class} {flight_date} {dep_arr_code} {booking_status} {dep_time} {arr_time} {add_date}  E  {flight_code}/{pnr}"
+    flight_out = f"  {idx}  {flight_code} {flight_num} {flight_class} {flight_date} {dep_arr_code} {booking_status}  {dep_time} {arr_time}  {add_date}  E  {flight_code}/{pnr}"
     output.append(flight_out)
 
   return "\n".join(output)
