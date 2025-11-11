@@ -1533,6 +1533,153 @@ def parse_jetstar(text):
   return output_text
   
 ### END OF JETSTAR LOGIC ###
+
+### TRAVELPORT TO EASYTRAVEL ###
+def _tp_normalize_text(s: str) -> str:
+  """
+  Samakan semua whitespace supaya regex tidak bego gara-gara \u00A0, \u2009, \u200B, dsb.
+  Juga rapikan "1 . GA" -> "1. GA"
+  """
+  if not s:
+    return s
+  # Ganti semua whitespace “exotik” ke spasi biasa
+  s = s.replace("\u00A0", " ").replace("\u2009", " ").replace("\u202F", " ").replace("\u200A", " ").replace("\u200B", "")
+  # Hapus control characters umum dari copy HTML
+  s = re.sub(r'[\u2000-\u200F\u2028\u2029]', ' ', s)
+  # Rapikan nomor index: "1 .", "1  .", "1. " -> "1. "
+  s = re.sub(r'^\s*(\d+)\s*\.\s*', r'\1. ', s, flags=re.MULTILINE)
+  # Kompres spasi berlebihan tapi JANGAN gabungin antar token penting
+  # Biarkan line-based; jangan jadikan satu baris
+  s = "\n".join(re.sub(r'[ \t]{2,}', '  ', ln.rstrip()) for ln in s.splitlines())
+  return s
+
+def _tp_extract_flights(all_lines: list[str]) -> list[dict]:
+  """
+  Support variasi:
+    '1 . GA  716 N  18MAR CGKMEL HK9  0115   1150  O*        E WE'
+    '1. GA 713 Q 30MAR SYDCGK HK9 1245 1630 O* E MO'
+    '1.GA713 Q 30MAR SYDCGK HK9 1245 1630' (tanpa spasi rapi)
+  """
+  flights = []
+
+  # Regex utama: sangat toleran spasi dan titik
+  rx = re.compile(
+    r"""
+    ^\s*\d+\s*\.?\s*                 # index: 1. / 1 .
+    ([A-Z]{2})\s*                    # airline
+    (\d{1,4})\s+                     # flight number (1-4 digit)
+    ([A-Z])\s+                       # booking class
+    (\d{2}[A-Z]{3})\s+               # dep date DDMMM
+    ([A-Z]{3})([A-Z]{3})\s+          # sector 3+3 (CGK)(MEL)
+    ([A-Z]{2}\d*)\s+                 # status HK9 / TK1 / dsb
+    (\d{3,4})\s+                     # dep time HHMM (kadang ketik 3 digit, ampunilah)
+    (\d{3,4})                        # arr time HHMM
+    """,
+    re.VERBOSE
+  )
+
+  # Fallback regex: jika ada varian aneh spasi/urutan
+  rx_fallback = re.compile(
+    r"""
+    ^\s*\d+\s*\.?\s*
+    (?P<air>[A-Z]{2})\s*
+    (?P<num>\d{1,4})\s+
+    (?P<class>[A-Z])\s+
+    (?P<ddmm>\d{2}[A-Z]{3})\s+
+    (?P<sec>[A-Z]{6})\s+
+    (?P<stat>[A-Z]{2}\d*)\s+
+    (?P<dep>\d{3,4})\s+
+    (?P<arr>\d{3,4})
+    """,
+    re.VERBOSE
+  )
+
+  for raw in all_lines:
+    line = raw.strip()
+    if not line:
+      continue
+    m = rx.search(line)
+    if not m:
+      m = rx_fallback.search(line)
+    if not m:
+      continue
+
+    if len(m.groups()) == 9:
+      airline, flt_no, bclass, dep_date, secA, secB, status, dep_time, arr_time = m.groups()
+      sector = f"{secA}{secB}"
+    else:
+      gd = m.groupdict()
+      airline = gd.get("air", "")
+      flt_no  = gd.get("num", "")
+      bclass  = gd.get("class", "")
+      dep_date = gd.get("ddmm", "").upper()
+      sector  = gd.get("sec", "").upper()
+      status  = gd.get("stat", "").upper()
+      dep_time = gd.get("dep", "")
+      arr_time = gd.get("arr", "")
+
+    # Normalisasi jam jadi 4 digit
+    if len(dep_time) == 3:
+      dep_time = dep_time.zfill(4)
+    if len(arr_time) == 3:
+      arr_time = arr_time.zfill(4)
+
+    # Arrival date sama dengan departure date by default
+    arr_date = dep_date
+
+    flights.append({
+      "flight_code": airline,
+      "flight_number": flt_no,
+      "cabin_class": bclass,
+      "departure_date": dep_date,
+      "arrival_date": arr_date,
+      "sector": sector,
+      "status": status,
+      "departure_time": dep_time,
+      "arrival_time": arr_time
+    })
+
+  return flights
+
+def parse_travelport_to_easytravel(input_text: str) -> str:
+  print("\n Result Konfirmasi\n\n")
+  # NORMALISASI DULU (beda inti Anvil vs Colab seringnya di sini)
+  norm_text = _tp_normalize_text(input_text)
+
+  lines = [line.rstrip() for line in norm_text.splitlines() if line.strip()]
+  pnr = _tp_extract_pnr(norm_text)
+
+  # Ambil kandidat baris penumpang
+  passenger_lines = [
+    ln for ln in lines
+    if '/' in ln and any(t in ln.upper() for t in [" MR"," MRS"," MS"," MISS"," MSTR"," CHD"])
+  ]
+  passengers = _tp_extract_passengers(passenger_lines)
+
+  flights = _tp_extract_flights(lines)
+
+  output_text = ""
+  if pnr:
+    output_text += f"{pnr}\n"
+
+  i = 1
+  for p in passengers:
+    output_text += f"  {i}.{p}\n"
+    i += 1
+
+  for f in flights:
+    output_text += (
+      f"  {i}  {f['flight_code']} {f['flight_number']} {f['cabin_class']} "
+      f"{f['departure_date']} 0*{f['sector']} {f['status']}  "
+      f"{f['departure_time']} {f['arrival_time']}  "
+      f"{f['arrival_date']}  E  {f['flight_code']}/{pnr}\n"
+    )
+    i += 1
+
+  output_text += "\n"
+  return output_text
+### END OF TRAVELPORT LOGIC ###
+
 def main_amd(text):
   if(is_confirmation_amd(text)):
     return handle_confirmation_amd(text)
@@ -1566,6 +1713,9 @@ def main_lionair(text):
 
 def main_jetstar(text):
   return parse_jetstar(text)
+
+def main_travelport(text):
+  return parse_travelport_to_easytravel(text)
 
 class Form1(Form1Template):
   def __init__(self, **properties):
@@ -1612,6 +1762,9 @@ class Form1(Form1Template):
 
       if airline == "SQ to EasyTravel":
         summary = main_sqet(self.text_area.text)
+
+      if airline == "Travelport to EasyTravel":
+        summary = main_travelport(self.text_area.text)
         
       if summary:
         self.btn_copy.visible = True
