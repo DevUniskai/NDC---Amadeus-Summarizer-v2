@@ -1535,149 +1535,109 @@ def parse_jetstar(text):
 ### END OF JETSTAR LOGIC ###
 
 ### TRAVELPORT TO EASYTRAVEL ###
-def _tp_normalize_text(s: str) -> str:
-  """
-  Samakan semua whitespace supaya regex tidak bego gara-gara \u00A0, \u2009, \u200B, dsb.
-  Juga rapikan "1 . GA" -> "1. GA"
-  """
-  if not s:
-    return s
-  # Ganti semua whitespace “exotik” ke spasi biasa
-  s = s.replace("\u00A0", " ").replace("\u2009", " ").replace("\u202F", " ").replace("\u200A", " ").replace("\u200B", "")
-  # Hapus control characters umum dari copy HTML
-  s = re.sub(r'[\u2000-\u200F\u2028\u2029]', ' ', s)
-  # Rapikan nomor index: "1 .", "1  .", "1. " -> "1. "
-  s = re.sub(r'^\s*(\d+)\s*\.\s*', r'\1. ', s, flags=re.MULTILINE)
-  # Kompres spasi berlebihan tapi JANGAN gabungin antar token penting
-  # Biarkan line-based; jangan jadikan satu baris
-  s = "\n".join(re.sub(r'[ \t]{2,}', '  ', ln.rstrip()) for ln in s.splitlines())
-  return s
+def clean_name_travelport(raw_name):
+  # Hapus tag *P-C05, DOB..., dll
+  name = re.sub(r'\*.*', '', raw_name)
+  name = re.sub(r'\bDOB\d{2}[A-Z]{3}\d{2}\b', '', name, flags=re.IGNORECASE)
+  name = name.strip()
+  return name
 
-def _tp_extract_flights(all_lines: list[str]) -> list[dict]:
-  """
-  Support variasi:
-    '1 . GA  716 N  18MAR CGKMEL HK9  0115   1150  O*        E WE'
-    '1. GA 713 Q 30MAR SYDCGK HK9 1245 1630 O* E MO'
-    '1.GA713 Q 30MAR SYDCGK HK9 1245 1630' (tanpa spasi rapi)
-  """
-  flights = []
+def format_passenger_travelport(name_str, idx):
+  # Hapus angka dan titik di awal, contoh "1.1JULIANTO/TENG MR" jadi "JULIANTO/TENG MR"
+  name_str = re.sub(r'^\d+\.?\d*', '', name_str).strip()
 
-  # Regex utama: sangat toleran spasi dan titik
-  rx = re.compile(
-    r"""
-    ^\s*\d+\s*\.?\s*                 # index: 1. / 1 .
-    ([A-Z]{2})\s*                    # airline
-    (\d{1,4})\s+                     # flight number (1-4 digit)
-    ([A-Z])\s+                       # booking class
-    (\d{2}[A-Z]{3})\s+               # dep date DDMMM
-    ([A-Z]{3})([A-Z]{3})\s+          # sector 3+3 (CGK)(MEL)
-    ([A-Z]{2}\d*)\s+                 # status HK9 / TK1 / dsb
-    (\d{3,4})\s+                     # dep time HHMM (kadang ketik 3 digit, ampunilah)
-    (\d{3,4})                        # arr time HHMM
-    """,
-    re.VERBOSE
-  )
+  # Split title dari nama (title pasti di akhir dan uppercase)
+  title_match = re.search(r'\b(MR|MRS|MS|MSTR|MISS|CHD)\b', name_str, re.IGNORECASE)
+  if title_match:
+    title = title_match.group(1).upper()
+    # Hapus title dari string untuk nama
+    name_only = re.sub(r'\b' + title + r'\b', '', name_str, flags=re.IGNORECASE).strip()
+  else:
+    title = ""
+    name_only = name_str.strip()
 
-  # Fallback regex: jika ada varian aneh spasi/urutan
-  rx_fallback = re.compile(
-    r"""
-    ^\s*\d+\s*\.?\s*
-    (?P<air>[A-Z]{2})\s*
-    (?P<num>\d{1,4})\s+
-    (?P<class>[A-Z])\s+
-    (?P<ddmm>\d{2}[A-Z]{3})\s+
-    (?P<sec>[A-Z]{6})\s+
-    (?P<stat>[A-Z]{2}\d*)\s+
-    (?P<dep>\d{3,4})\s+
-    (?P<arr>\d{3,4})
-    """,
-    re.VERBOSE
-  )
+    # Split nama berdasarkan slash (/)
+  parts = name_only.split('/')
 
-  for raw in all_lines:
-    line = raw.strip()
-    if not line:
-      continue
-    m = rx.search(line)
-    if not m:
-      m = rx_fallback.search(line)
-    if not m:
-      continue
+  # Jangan ubah case, biarkan sama persis input
 
-    if len(m.groups()) == 9:
-      airline, flt_no, bclass, dep_date, secA, secB, status, dep_time, arr_time = m.groups()
-      sector = f"{secA}{secB}"
+  if len(parts) == 2:
+    first = parts[0].strip()
+    last = parts[1].strip()
+  else:
+    first = ""
+    last = name_only
+
+  if title in ['MSTR', 'MISS', 'CHD']:
+    if first == "":
+      return f"{idx}. {title} {last}"
+    return f"{idx}. {title} {first}/{last}"
+  else:
+    if first == "":
+      return f"{idx}. {last} {title}"
+    return f"{idx}. {last}/{first} {title}"
+
+def parse_travelport_to_easytravel(text):
+  lines = [line.strip() for line in text.splitlines() if line.strip()]
+  output = []
+
+  # Ambil PNR dari line pertama, sebelum '/'
+  pnr_line = lines[0]
+  pnr_match = re.match(r'(\w+)/', pnr_line)
+  pnr = pnr_match.group(1) if pnr_match else pnr_line.split()[0]
+  output.append(pnr)
+
+  # Kumpulkan baris penumpang (yang ada nomor dan nama)
+  passenger_lines = []
+  for line in lines[1:]:
+    # Cek apakah baris penumpang (ada nomor dan huruf, bukan penerbangan)
+    if re.match(r'^\d+\.\d*\w', line):
+      # Bisa ada banyak penumpang dalam satu line, split dengan regex nomor. Contoh: "1.1JULIANTO..."
+      parts = re.findall(r'\d+\.\d*\s*([^\d]+)', line)
+      # Jika parts kosong, coba split berdasarkan nomor. fallback
+      if not parts:
+        parts = re.split(r'\s+(?=\d+\.)', line)
+      for part in parts:
+        cleaned = clean_name_travelport(part)
+        if cleaned:
+          passenger_lines.append(cleaned)
+    elif re.match(r'^\d+\.', line):  # fallback: baris mulai angka dan titik
+      passenger_lines.append(clean_name_travelport(line))
+
+    # Format penumpang
+  for idx, p in enumerate(passenger_lines, 1):
+    output.append(format_passenger_travelport(p, idx))
+
+    # Parsing penerbangan (line yang mengandung GA)
+  flight_lines = [l for l in lines if " GA " in l]
+
+  for idx, fline in enumerate(flight_lines, start=len(passenger_lines)+1):
+    parts = re.split(r'\s+', fline.strip())
+    if parts[1] == '.':
+      parts.pop(1)
+    flight_code = parts[1]
+    flight_num = parts[2]
+    flight_class = parts[3]
+    flight_date = parts[4]
+    dep_arr = parts[5]
+    if len(dep_arr) == 6:
+      dep = dep_arr[:3]
+      arr = dep_arr[3:]
     else:
-      gd = m.groupdict()
-      airline = gd.get("air", "")
-      flt_no  = gd.get("num", "")
-      bclass  = gd.get("class", "")
-      dep_date = gd.get("ddmm", "").upper()
-      sector  = gd.get("sec", "").upper()
-      status  = gd.get("stat", "").upper()
-      dep_time = gd.get("dep", "")
-      arr_time = gd.get("arr", "")
+      dep = dep_arr
+      arr = ""
+    booking_status = parts[6] if len(parts) > 6 else ""
+    dep_time = parts[7] if len(parts) > 7 else ""
+    arr_time = parts[8] if len(parts) > 8 else ""
+    add_date = parts[11] if len(parts) > 11 else ""
 
-    # Normalisasi jam jadi 4 digit
-    if len(dep_time) == 3:
-      dep_time = dep_time.zfill(4)
-    if len(arr_time) == 3:
-      arr_time = arr_time.zfill(4)
+    dep_arr_code = "0*" + dep + arr
 
-    # Arrival date sama dengan departure date by default
-    arr_date = dep_date
+    flight_out = f"{idx}  {flight_code} {flight_num} {flight_class} {flight_date} {dep_arr_code} {booking_status} {dep_time} {arr_time} {add_date}  E  {flight_code}/{pnr}"
+    output.append(flight_out)
 
-    flights.append({
-      "flight_code": airline,
-      "flight_number": flt_no,
-      "cabin_class": bclass,
-      "departure_date": dep_date,
-      "arrival_date": arr_date,
-      "sector": sector,
-      "status": status,
-      "departure_time": dep_time,
-      "arrival_time": arr_time
-    })
+  return "\n".join(output)
 
-  return flights
-
-def parse_travelport_to_easytravel(input_text: str) -> str:
-  print("\n Result Konfirmasi\n\n")
-  # NORMALISASI DULU (beda inti Anvil vs Colab seringnya di sini)
-  norm_text = _tp_normalize_text(input_text)
-
-  lines = [line.rstrip() for line in norm_text.splitlines() if line.strip()]
-  pnr = _tp_extract_pnr(norm_text)
-
-  # Ambil kandidat baris penumpang
-  passenger_lines = [
-    ln for ln in lines
-    if '/' in ln and any(t in ln.upper() for t in [" MR"," MRS"," MS"," MISS"," MSTR"," CHD"])
-  ]
-  passengers = _tp_extract_passengers(passenger_lines)
-
-  flights = _tp_extract_flights(lines)
-
-  output_text = ""
-  if pnr:
-    output_text += f"{pnr}\n"
-
-  i = 1
-  for p in passengers:
-    output_text += f"  {i}.{p}\n"
-    i += 1
-
-  for f in flights:
-    output_text += (
-      f"  {i}  {f['flight_code']} {f['flight_number']} {f['cabin_class']} "
-      f"{f['departure_date']} 0*{f['sector']} {f['status']}  "
-      f"{f['departure_time']} {f['arrival_time']}  "
-      f"{f['arrival_date']}  E  {f['flight_code']}/{pnr}\n"
-    )
-    i += 1
-
-  output_text += "\n"
-  return output_text
 ### END OF TRAVELPORT LOGIC ###
 
 def main_amd(text):
