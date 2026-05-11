@@ -371,7 +371,7 @@ def parse_penawaran_tes(input_text):
         flight_numbers = " - ".join([f"{num} {cls}" for num, cls in zip(flight_group['flight_numbers'], flight_group['cabin_classes'])])
         output.append(f"{flight_group['departure_date']} - {flight_group['arrival_date']} | {departure_airports}-{arrival_airports} | {departure_times}-{arrival_times} | {flight_numbers}")
 
-  print("")
+    print("penawaran_tes")
     return "\n".join(output) 
 
 def get_index(list_item, search_text):
