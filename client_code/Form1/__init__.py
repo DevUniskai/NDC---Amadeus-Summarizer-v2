@@ -143,6 +143,7 @@ def parse_penawaran_1(input_text):
     for flight in flights:
         output += f"{flight['departure_date']} | {flight['departure_airport_code']}-{flight['arrival_airport_code']} | {flight['departure_time']}-{flight['arrival_time']} | {flight['flight_code']}\n"
     output += f"_{layover}_"
+    print("penawaran_1")
     return output
   
 # format input paling baru (perflight) pake yg ini
@@ -369,7 +370,8 @@ def parse_penawaran_tes(input_text):
         arrival_times = "-".join(flight_group['arrival_times'])
         flight_numbers = " - ".join([f"{num} {cls}" for num, cls in zip(flight_group['flight_numbers'], flight_group['cabin_classes'])])
         output.append(f"{flight_group['departure_date']} - {flight_group['arrival_date']} | {departure_airports}-{arrival_airports} | {departure_times}-{arrival_times} | {flight_numbers}")
-    
+
+  print("")
     return "\n".join(output) 
 
 def get_index(list_item, search_text):
