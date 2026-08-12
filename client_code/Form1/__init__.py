@@ -1684,6 +1684,21 @@ class Form1(Form1Template):
     # Set Form properties and Data Bindings.
     self.init_components(**properties)
 
+    warnText = Link(
+      text="⚠️ This summarizer will be taken down on 12 Aug 2026. Switch to ",
+      url="#",
+      bold=True,
+      align="center",
+      foreground="#B00020",
+    )
+    notice = Link(
+      text="UniTools →",
+      url="https://dev-uniskai.cloud/flight-summarizer",
+      bold=True,
+      align="center",
+      foreground="#000000",
+    )
+    self.add_component(warnText, notice, index=0)
     # Any code you write here will run before the form opens.
     
   def text_box_1_pressed_enter(self, **event_args):
